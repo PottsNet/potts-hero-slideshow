@@ -1,0 +1,283 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+
+/**
+ * @var string $title
+ * @var string $action_url
+ * @var array<string,string> $settings
+ * @var array<int,array<string,string>> $slides
+ * @var array<string,string> $fit_choices
+ * @var array<string,string> $frame_choices
+ * @var array<string,string> $colour_choices
+ * @var array<string,string> $palette_choices
+ * @var array<string,string> $transition_choices
+ * @var array<string,string> $caption_choices
+ * @var array<string,string> $start_choices
+ * @var array<string,string> $focal_choices
+ * @var bool $saved
+ * @var bool $uploaded
+ * @var bool $deleted
+ * @var string $error
+ * @var string $version
+ */
+
+$t = static fn (string $text): string => I18N::translate($text);
+
+$select = static function (string $name, string $label, array $choices, string $selected, string $help = ''): void {
+    ?>
+    <div class="potts-hero-field">
+        <label class="form-label" for="potts-hero-<?= e($name) ?>"><?= e($label) ?></label>
+        <select class="form-select" id="potts-hero-<?= e($name) ?>" name="<?= e($name) ?>">
+            <?php foreach ($choices as $value => $choice) : ?>
+                <option value="<?= e($value) ?>" <?= $selected === $value ? 'selected' : '' ?>><?= e($choice) ?></option>
+            <?php endforeach ?>
+        </select>
+        <?php if ($help !== '') : ?>
+            <div class="form-text"><?= e($help) ?></div>
+        <?php endif ?>
+    </div>
+    <?php
+};
+
+$text = static function (string $name, string $label, string $value, string $help = ''): void {
+    ?>
+    <div class="potts-hero-field">
+        <label class="form-label" for="potts-hero-<?= e($name) ?>"><?= e($label) ?></label>
+        <input class="form-control" id="potts-hero-<?= e($name) ?>" name="<?= e($name) ?>" value="<?= e($value) ?>">
+        <?php if ($help !== '') : ?>
+            <div class="form-text"><?= e($help) ?></div>
+        <?php endif ?>
+    </div>
+    <?php
+};
+
+$toggle = static function (string $name, string $label, bool $checked, string $help = ''): void {
+    ?>
+    <label class="potts-hero-toggle" for="potts-hero-<?= e($name) ?>">
+        <span>
+            <strong><?= e($label) ?></strong>
+            <?php if ($help !== '') : ?>
+                <small><?= e($help) ?></small>
+            <?php endif ?>
+        </span>
+        <span class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="potts-hero-<?= e($name) ?>" name="<?= e($name) ?>" value="1" <?= $checked ? 'checked' : '' ?>>
+        </span>
+    </label>
+    <?php
+};
+
+$enabled_slides = array_values(array_filter($slides, static fn (array $slide): bool => $slide['enabled'] === '1'));
+?>
+
+<style>
+.potts-hero-admin{max-width:1320px;margin:0 auto 3rem}.potts-hero-notice{margin-bottom:1rem}.potts-hero-intro{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1rem;padding:1rem 1.15rem;border:1px solid rgba(35,48,56,.14);border-radius:18px;background:linear-gradient(135deg,#f4f0e6,#edf2eb);box-shadow:0 10px 26px rgba(35,48,56,.06)}.potts-hero-intro h2{margin:0 0 .25rem;font-size:1.35rem}.potts-hero-intro p{margin:0;color:#5f6b70}.potts-hero-version{white-space:nowrap;padding:.35rem .7rem;border-radius:999px;background:#185a71;color:#fff;font-weight:800}.potts-hero-preview-card{margin-bottom:1rem;border:1px solid rgba(35,48,56,.14);border-radius:18px;background:#fff;box-shadow:0 12px 30px rgba(35,48,56,.08);overflow:hidden}.potts-hero-preview-card>header,.potts-hero-section>header{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.85rem 1rem;background:#edf2eb;border-bottom:1px solid rgba(35,48,56,.12)}.potts-hero-preview-card h3,.potts-hero-section h3{margin:0;font-size:1.05rem;color:#30483a}.potts-hero-preview-card header span{color:#66737a;font-size:.9rem}.potts-hero-preview-inner{padding:1rem;background:linear-gradient(135deg,#fbfaf5,#f1ecdf)}.potts-hero-preview-inner .ourfamily-hero{max-width:980px;margin:0 auto;min-height:clamp(260px,30vw,360px);}.potts-hero-editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;align-items:start}.potts-hero-section{margin-bottom:1rem;border:1px solid rgba(35,48,56,.14);border-radius:18px;background:#fff;box-shadow:0 10px 26px rgba(35,48,56,.07);overflow:hidden}.potts-hero-section>header small{color:#66737a;font-weight:600}.potts-hero-card-body{padding:1rem}.potts-hero-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.9rem}.potts-hero-range-row{display:grid;grid-template-columns:minmax(0,1fr)4.8rem;gap:.85rem;align-items:center}.potts-hero-range-row output{font-weight:800;color:#185a71;text-align:right}.potts-hero-field label{font-weight:800;color:#26363d}.potts-hero-field-full{grid-column:1/-1}.potts-hero-field-full textarea{min-height:5.5rem}.potts-hero-toggle{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:0;padding:.9rem 1rem;border-bottom:1px solid rgba(35,48,56,.09);cursor:pointer}.potts-hero-toggle strong{display:block;color:#26363d}.potts-hero-toggle small{display:block;margin-top:.2rem;color:#68767d;font-weight:500}.potts-hero-toggle .form-check{margin:0}.potts-hero-upload{padding:1rem}.potts-hero-upload-zone{padding:1rem;border:2px dashed rgba(24,90,113,.25);border-radius:16px;background:#f8fbf8}.potts-hero-slides-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}.potts-hero-slides-help{margin:0;color:#66737a;font-size:.9rem}.potts-hero-slides{display:grid;gap:.65rem;padding:1rem}.potts-hero-slide-row{display:grid;grid-template-columns:104px minmax(0,1fr) 150px;gap:.85rem;align-items:start;padding:.75rem;border:1px solid rgba(35,48,56,.12);border-radius:16px;background:#fffaf2}.potts-hero-slide-row{cursor:grab}.potts-hero-slide-row.is-dragging{opacity:.58;cursor:grabbing}.potts-hero-slide-row.drag-over{outline:3px solid rgba(24,90,113,.25);background:#f4fbfd}.potts-hero-slide-preview{position:relative;overflow:hidden;border-radius:12px;background:#d8c79f;aspect-ratio:4/3}.potts-hero-slide-preview img{width:100%;height:100%;object-fit:cover;display:block}.potts-hero-slide-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.65rem}.potts-hero-slide-fields .full{grid-column:1/-1}.potts-hero-slide-fields label{font-weight:800;color:#26363d}.potts-hero-slide-tools{display:grid;gap:.55rem;justify-items:stretch}.potts-hero-slide-filename{display:block;color:#65717a;font-size:.82rem;line-height:1.25;overflow:hidden;text-overflow:ellipsis;word-break:break-word}.potts-hero-drag-handle{display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;border:1px solid rgba(35,48,56,.18);border-radius:999px;background:#fff;color:#185a71;font-weight:900;cursor:grab}.potts-hero-order-controls{display:flex;align-items:center;gap:.35rem}.potts-hero-order-controls .btn{min-width:2.1rem}.potts-hero-actions{position:sticky;bottom:.75rem;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:1rem;padding:1rem;border:1px solid rgba(35,48,56,.16);border-radius:18px;background:rgba(255,255,255,.96);box-shadow:0 16px 40px rgba(35,48,56,.12);backdrop-filter:blur(8px)}.potts-hero-actions .btn-primary{border-color:#185a71;background:#185a71}.potts-hero-mini-stats{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.55rem}.potts-hero-mini-stats span{padding:.25rem .55rem;border-radius:999px;background:rgba(24,90,113,.10);color:#185a71;font-weight:800;font-size:.85rem}.potts-hero-danger{display:flex;justify-content:flex-end}@media(max-width:1100px){.potts-hero-editor-grid{grid-template-columns:1fr}.potts-hero-slide-row{grid-template-columns:92px minmax(0,1fr)}}@media(max-width:760px){.potts-hero-intro,.potts-hero-actions,.potts-hero-slides-header{flex-direction:column;align-items:stretch}.potts-hero-fields,.potts-hero-slide-fields{grid-template-columns:1fr}.potts-hero-slide-row{grid-template-columns:1fr}.potts-hero-slide-preview{max-width:230px}.potts-hero-slide-tools{justify-items:start}.potts-hero-danger{justify-content:flex-start}}
+</style>
+
+<div class="potts-hero-admin">
+    <?php if ($saved) : ?>
+        <div class="alert alert-success potts-hero-notice" role="status"><?= e($t('The hero slideshow settings have been saved.')) ?></div>
+    <?php endif ?>
+    <?php if ($uploaded) : ?>
+        <div class="alert alert-success potts-hero-notice" role="status"><?= e($t('The hero image has been uploaded.')) ?></div>
+    <?php endif ?>
+    <?php if ($deleted) : ?>
+        <div class="alert alert-info potts-hero-notice" role="status"><?= e($t('The hero image has been deleted.')) ?></div>
+    <?php endif ?>
+    <?php if ($error !== '') : ?>
+        <div class="alert alert-warning potts-hero-notice" role="alert"><?= e($error) ?></div>
+    <?php endif ?>
+
+    <div class="potts-hero-intro">
+        <div>
+            <h2><?= e($t('Potts Hero Slideshow')) ?></h2>
+            <p><?= e($t('Manage the full-width homepage hero banner, rotating images, captions, buttons and display timing.')) ?></p>
+            <div class="potts-hero-mini-stats">
+                <span><?= e(I18N::plural('%s slide', '%s slides', count($slides), I18N::number(count($slides)))) ?></span>
+                <span><?= e(I18N::plural('%s enabled', '%s enabled', count($enabled_slides), I18N::number(count($enabled_slides)))) ?></span>
+            </div>
+        </div>
+        <span class="potts-hero-version">v<?= e($version) ?></span>
+    </div>
+
+    <form method="post" action="<?= e($action_url) ?>" enctype="multipart/form-data">
+        <?= csrf_field() ?>
+
+        <section class="potts-hero-preview-card" aria-label="<?= e($t('Hero preview')) ?>">
+            <header>
+                <div>
+                    <h3><?= e($t('Live preview')) ?></h3>
+                    <span><?= e($t('This preview uses the current saved settings. Save to refresh after making changes.')) ?></span>
+                </div>
+            </header>
+            <div class="potts-hero-preview-inner">
+                <?= view('potts-hero-slideshow::block/hero', ['settings' => $settings, 'slides' => $enabled_slides]) ?>
+            </div>
+        </section>
+
+        <div class="potts-hero-editor-grid">
+            <section class="potts-hero-section">
+                <header>
+                    <h3><?= e($t('1. Hero text')) ?></h3>
+                    <small><?= e($t('Heading and introduction')) ?></small>
+                </header>
+                <?php $toggle('enabled', $t('Show hero banner'), $settings['ENABLED'] === '1', $t('Turn the homepage hero on or off.')); ?>
+                <div class="potts-hero-card-body">
+                    <div class="potts-hero-fields">
+                        <?php $text('kicker', $t('Small heading'), $settings['KICKER']); ?>
+                        <?php $text('title', $t('Main heading'), $settings['TITLE']); ?>
+                        <div class="potts-hero-field potts-hero-field-full">
+                            <label class="form-label" for="potts-hero-subtitle"><?= e($t('Subtitle')) ?></label>
+                            <textarea class="form-control" id="potts-hero-subtitle" name="subtitle"><?= e($settings['SUBTITLE']) ?></textarea>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="potts-hero-section">
+                <header>
+                    <h3><?= e($t('2. Buttons')) ?></h3>
+                    <small><?= e($t('Calls to action')) ?></small>
+                </header>
+                <?php $toggle('show_button_1', $t('Show first button'), $settings['SHOW_BUTTON_1'] === '1'); ?>
+                <?php $toggle('show_button_2', $t('Show second button'), $settings['SHOW_BUTTON_2'] === '1'); ?>
+                <div class="potts-hero-card-body">
+                    <div class="potts-hero-fields">
+                        <?php $text('button_1_text', $t('First button text'), $settings['BUTTON_1_TEXT']); ?>
+                        <?php $text('button_1_url', $t('First button URL'), $settings['BUTTON_1_URL']); ?>
+                        <?php $text('button_2_text', $t('Second button text'), $settings['BUTTON_2_TEXT']); ?>
+                        <?php $text('button_2_url', $t('Second button URL'), $settings['BUTTON_2_URL']); ?>
+                    </div>
+                </div>
+            </section>
+
+            <section class="potts-hero-section">
+                <header>
+                    <h3><?= e($t('3. Display')) ?></h3>
+                    <small><?= e($t('Style and behaviour')) ?></small>
+                </header>
+                <?php $toggle('dots', $t('Show image selector dots'), $settings['DOTS'] === '1'); ?>
+                <?php $toggle('random_start', $t('Randomise image order'), ($settings['RANDOM_START'] ?? '0') === '1', $t('Shuffle the enabled hero images into a fresh order each time the homepage is loaded.')); ?>
+                <div class="potts-hero-card-body">
+                    <div class="potts-hero-fields">
+                        <div class="potts-hero-field">
+                            <label class="form-label" for="potts-hero-interval"><?= e($t('Slide interval')) ?></label>
+                            <input class="form-control" id="potts-hero-interval" name="interval" type="number" min="3500" step="500" value="<?= e($settings['INTERVAL']) ?>">
+                            <div class="form-text"><?= e($t('Milliseconds. 7000 equals 7 seconds.')) ?></div>
+                        </div>
+                        <div class="potts-hero-field">
+                            <label class="form-label" for="potts-hero-transition-speed"><?= e($t('Transition speed')) ?></label>
+                            <input class="form-control" id="potts-hero-transition-speed" name="transition_speed" type="number" min="300" max="5000" step="100" value="<?= e($settings['TRANSITION_SPEED'] ?? '1150') ?>">
+                            <div class="form-text"><?= e($t('Milliseconds. 300 is quick; 1500–2500 gives a slower fade.')) ?></div>
+                        </div>
+                        <?php $select('transition', $t('Transition effect'), $transition_choices, $settings['TRANSITION'], $t('Choose random to vary the effect each time the image changes.')); ?>
+                        <?php $select('image_fit', $t('Image fit'), $fit_choices, $settings['IMAGE_FIT']); ?>
+                        <?php $select('frame_style', $t('Frame style'), $frame_choices, $settings['FRAME_STYLE']); ?>
+                        <?php $select('palette', $t('Hero palette'), $palette_choices, $settings['PALETTE'], $t('Automatic uses theme variables where available, with safe fallbacks for other webtrees themes.')); ?>
+                        <?php $select('colour_mode', $t('Photo style'), $colour_choices, $settings['COLOUR_MODE']); ?>
+                        <?php $select('caption_style', $t('Image title display'), $caption_choices, $settings['CAPTION_STYLE'], $t('Choose how slide captions appear on the hero image.')); ?>
+                        <div class="potts-hero-field potts-hero-field-full">
+                            <label class="form-label" for="potts-hero-caption-offset"><?= e($t('Overlay title strip height position')) ?></label>
+                            <div class="potts-hero-range-row">
+                                <input class="form-range" id="potts-hero-caption-offset" name="caption_offset" type="range" min="0" max="120" step="2" value="<?= e($settings['CAPTION_OFFSET'] ?? '20') ?>" oninput="document.getElementById('potts-hero-caption-offset-value').textContent = this.value + ' px'">
+                                <output id="potts-hero-caption-offset-value"><?= e($settings['CAPTION_OFFSET'] ?? '20') ?> px</output>
+                            </div>
+                            <div class="form-text"><?= e($t('Only affects overlay captions. Increase the value to raise the title strip above the bottom of the image.')) ?></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="potts-hero-section">
+                <header>
+                    <h3><?= e($t('4. Upload images')) ?></h3>
+                    <small><?= e($t('Add family photographs')) ?></small>
+                </header>
+                <div class="potts-hero-upload">
+                    <div class="potts-hero-upload-zone">
+                        <label class="form-label" for="potts-hero-images"><?= e($t('Choose family photographs')) ?></label>
+                        <input class="form-control" id="potts-hero-images" type="file" name="hero_images[]" multiple accept="image/jpeg,image/png,image/webp,image/gif">
+                        <div class="form-text"><?= e($t('You can upload JPG, PNG, WEBP or GIF images. The files are stored in the webtrees data folder so module updates do not overwrite them.')) ?></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="potts-hero-section">
+            <header class="potts-hero-slides-header">
+                <div>
+                    <h3><?= e($t('5. Slides')) ?></h3>
+                    <p class="potts-hero-slides-help"><?= e($t('Drag slides by the handle, or use the up/down buttons. Add captions and alt text for better accessibility.')) ?></p>
+                </div>
+            </header>
+            <div class="potts-hero-slides" data-sortable="1">
+                <?php if ($slides === []) : ?>
+                    <p class="mb-0"><?= e($t('No hero images have been uploaded yet.')) ?></p>
+                <?php endif ?>
+
+                <?php foreach ($slides as $slide) : ?>
+                    <div class="potts-hero-slide-row" draggable="true" data-slide-file="<?= e($slide['file']) ?>">
+                        <div class="potts-hero-slide-preview">
+                            <img src="<?= e($slide['image_url']) ?>" alt="">
+                        </div>
+
+                        <div class="potts-hero-slide-fields">
+                            <div>
+                                <label class="form-label" for="slide-caption-<?= e($slide['file']) ?>"><?= e($t('Caption')) ?></label>
+                                <input class="form-control" id="slide-caption-<?= e($slide['file']) ?>" name="slides[<?= e($slide['file']) ?>][caption]" value="<?= e($slide['caption']) ?>">
+                            </div>
+                            <div>
+                                <label class="form-label" for="slide-alt-<?= e($slide['file']) ?>"><?= e($t('Alt text')) ?></label>
+                                <input class="form-control" id="slide-alt-<?= e($slide['file']) ?>" name="slides[<?= e($slide['file']) ?>][alt]" value="<?= e($slide['alt']) ?>">
+                            </div>
+                            <div>
+                                <label class="form-label" for="slide-focal-<?= e($slide['file']) ?>"><?= e($t('Focal point')) ?></label>
+                                <select class="form-select" id="slide-focal-<?= e($slide['file']) ?>" name="slides[<?= e($slide['file']) ?>][focal]">
+                                    <?php foreach ($focal_choices as $value => $choice) : ?>
+                                        <option value="<?= e($value) ?>" <?= $slide['focal'] === $value ? 'selected' : '' ?>><?= e($choice) ?></option>
+                                    <?php endforeach ?>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label"><?= e($t('Stored file')) ?></label>
+                                <span class="potts-hero-slide-filename"><?= e($slide['file']) ?></span>
+                            </div>
+                            <input class="potts-hero-sort-input" id="slide-sort-<?= e($slide['file']) ?>" name="slides[<?= e($slide['file']) ?>][sort]" type="hidden" value="<?= e($slide['sort']) ?>">
+                        </div>
+
+                        <div class="potts-hero-slide-tools">
+                            <div class="potts-hero-order-controls" aria-label="<?= e($t('Slide order controls')) ?>">
+                                <button class="potts-hero-drag-handle" type="button" title="<?= e($t('Drag to reorder')) ?>" aria-label="<?= e($t('Drag to reorder')) ?>">↕</button>
+                                <button class="btn btn-outline-secondary btn-sm potts-hero-move-up" type="button" title="<?= e($t('Move up')) ?>" aria-label="<?= e($t('Move up')) ?>">↑</button>
+                                <button class="btn btn-outline-secondary btn-sm potts-hero-move-down" type="button" title="<?= e($t('Move down')) ?>" aria-label="<?= e($t('Move down')) ?>">↓</button>
+                            </div>
+
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" name="slides[<?= e($slide['file']) ?>][enabled]" value="1" <?= $slide['enabled'] === '1' ? 'checked' : '' ?>>
+                                <span class="form-check-label"><?= e($t('Enabled')) ?></span>
+                            </label>
+
+                            <div class="potts-hero-danger">
+                                <button class="btn btn-outline-danger btn-sm" type="submit" name="delete_slide" value="<?= e($slide['file']) ?>" onclick="return confirm('<?= e($t('Delete this hero image?')) ?>')"><?= e($t('Delete')) ?></button>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach ?>
+            </div>
+        </section>
+
+        <div class="potts-hero-actions">
+            <div>
+                <strong><?= e($t('Save changes when you are happy with the hero.')) ?></strong>
+                <div class="form-text"><?= e($t('The preview updates after saving. Potts Modern Theme can enhance the block by placing it above the homepage columns.')) ?></div>
+            </div>
+            <div class="btn-group" role="group">
+                <button class="btn btn-outline-secondary" type="submit" name="task" value="reset" onclick="return confirm('<?= e($t('Restore the default hero settings? This will not delete uploaded images.')) ?>')"><?= e($t('Restore defaults')) ?></button>
+                <button class="btn btn-primary" type="submit" name="task" value="save"><?= e($t('Save settings')) ?></button>
+            </div>
+        </div>
+    </form>
+</div>

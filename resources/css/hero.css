@@ -1,0 +1,963 @@
+/* Potts Hero Slideshow --------------------------------------------------- */
+
+.potts-hero-slideshow .wt-block-content,
+.potts-hero-slideshow .wt-side-block-content {
+  padding: 0;
+}
+
+.ourfamily-hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 0.88fr) minmax(320px, 1.12fr);
+  gap: clamp(1.25rem, 3vw, 3.2rem);
+  align-items: center;
+  min-height: clamp(300px, 34vw, 440px);
+  padding: clamp(2rem, 4.7vw, 4.4rem);
+  overflow: hidden;
+  border: 8px solid rgba(255, 248, 229, 0.96);
+  border-radius: clamp(1.25rem, 2.4vw, 2rem);
+  background:
+    linear-gradient(90deg, rgba(9, 45, 55, 0.95), rgba(9, 45, 55, 0.73) 48%, rgba(9, 45, 55, 0.22)),
+    radial-gradient(circle at 76% 32%, rgba(255, 246, 220, 0.36), rgba(255, 246, 220, 0) 36%),
+    linear-gradient(135deg, #123b4b 0%, #6e614f 48%, #b48d4a 100%);
+  box-shadow: 0 24px 58px rgba(35, 48, 56, 0.19);
+}
+
+.ourfamily-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 14% 16%, rgba(255, 255, 255, 0.12), transparent 13rem),
+    linear-gradient(115deg, rgba(185, 134, 56, 0.2), rgba(255, 255, 255, 0) 58%);
+  pointer-events: none;
+}
+
+.ourfamily-hero::after {
+  content: "";
+  position: absolute;
+  inset: clamp(0.9rem, 1.5vw, 1.35rem);
+  z-index: 4;
+  border: 5px double rgba(244, 224, 164, 0.78);
+  border-radius: calc(clamp(1.25rem, 2.4vw, 2rem) - 0.3rem);
+  pointer-events: none;
+}
+
+.ourfamily-hero-copy {
+  position: relative;
+  z-index: 5;
+  max-width: 38rem;
+  color: #fff8e8;
+}
+
+.ourfamily-hero-kicker {
+  display: block;
+  margin: 0 0 0.65rem;
+  color: #e4c676;
+  font-size: 0.83rem;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ourfamily-hero-title,
+.ourfamily-hero h1,
+.ourfamily-hero h2 {
+  margin: 0 0 0.75rem !important;
+  color: #ffffff !important;
+  font-size: clamp(2.25rem, 5.2vw, 4.25rem) !important;
+  line-height: 1.02 !important;
+  letter-spacing: -0.055em !important;
+  text-wrap: balance;
+}
+
+.ourfamily-hero-copy p {
+  max-width: 34rem;
+  margin: 0 0 1.35rem !important;
+  color: rgba(255, 248, 232, 0.95) !important;
+  font-size: clamp(1.02rem, 1.5vw, 1.22rem) !important;
+  line-height: 1.55 !important;
+}
+
+.ourfamily-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 1.25rem;
+}
+
+.ourfamily-hero-actions a {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.72rem 1.1rem !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255, 255, 255, 0.46) !important;
+  background: rgba(255, 248, 232, 0.98) !important;
+  color: #123b4b !important;
+  font-weight: 850 !important;
+  text-decoration: none !important;
+  box-shadow: 0 9px 20px rgba(0, 0, 0, 0.18) !important;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.ourfamily-hero-actions a.secondary {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: none !important;
+}
+
+.ourfamily-hero-actions a:hover,
+.ourfamily-hero-actions a:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.23) !important;
+}
+
+.ourfamily-hero-frame {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  min-height: 245px;
+  padding: clamp(0.55rem, 1.2vw, 0.92rem);
+  border: 1px solid rgba(255, 239, 190, 0.82);
+  border-radius: 1.25rem;
+  background:
+    linear-gradient(135deg, rgba(247, 235, 200, 0.98), rgba(176, 137, 64, 0.82)),
+    #e8d7ad;
+  box-shadow:
+    0 24px 46px rgba(0, 0, 0, 0.28),
+    inset 0 0 0 3px rgba(120, 83, 32, 0.28),
+    inset 0 0 0 10px rgba(255, 255, 255, 0.15);
+}
+
+.ourfamily-hero-frame-simple .ourfamily-hero-frame {
+  padding: 0.5rem;
+  border-radius: 1rem;
+  background: rgba(255, 248, 232, 0.95);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
+}
+
+.ourfamily-hero-frame-none .ourfamily-hero-frame {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ourfamily-hero-media {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 0.7rem;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(255, 248, 232, 0.22), rgba(255, 248, 232, 0) 55%),
+    linear-gradient(135deg, rgba(40, 32, 24, 0.22), rgba(255, 255, 255, 0.10)),
+    #9f8e70;
+  box-shadow: inset 0 0 0 1px rgba(64, 48, 32, 0.34);
+}
+
+.ourfamily-hero-slide {
+  position: absolute;
+  inset: 0;
+  display: block;
+  margin: 0 !important;
+  opacity: 0;
+  transform: scale(1.018);
+  transition: opacity var(--ourfamily-hero-transition-duration, 1.15s) ease, transform var(--ourfamily-hero-zoom-duration, 6.8s) ease;
+}
+
+.ourfamily-hero-slide.is-active {
+  opacity: 1;
+  transform: scale(1.055);
+}
+
+.ourfamily-hero-slide img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  object-fit: contain !important;
+  object-position: center center;
+  filter: sepia(0.14) saturate(0.95) contrast(1.05);
+  box-shadow: none !important;
+}
+
+.ourfamily-hero-fit-cover .ourfamily-hero-slide img {
+  object-fit: cover !important;
+}
+
+.ourfamily-hero-fit-contain .ourfamily-hero-slide img {
+  object-fit: contain !important;
+}
+
+.ourfamily-hero-mode-colour .ourfamily-hero-slide img {
+  filter: none;
+}
+
+.ourfamily-hero-mode-sepia .ourfamily-hero-slide img {
+  filter: sepia(0.65) saturate(0.88) contrast(1.03);
+}
+
+.ourfamily-hero-mode-mono .ourfamily-hero-slide img {
+  filter: grayscale(1) contrast(1.08);
+}
+
+.ourfamily-hero-slide figcaption {
+  position: absolute;
+  left: 0.85rem;
+  right: 0.85rem;
+  bottom: 0.85rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.75rem;
+  background: rgba(12, 38, 45, 0.74);
+  color: #fff8e8;
+  font-size: 0.92rem;
+  font-weight: 720;
+  line-height: 1.3;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(5px);
+}
+
+.ourfamily-hero-placeholder {
+  display: grid;
+  place-content: center;
+  gap: 0.25rem;
+  min-height: 100%;
+  padding: 2rem;
+  color: #fff8e8;
+  text-align: center;
+}
+
+.ourfamily-hero-placeholder strong,
+.ourfamily-hero-placeholder span {
+  display: block;
+}
+
+.ourfamily-hero-dots {
+  position: absolute;
+  z-index: 6;
+  right: clamp(1.45rem, 2.8vw, 2.4rem);
+  bottom: clamp(1.35rem, 2.4vw, 2rem);
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.ourfamily-hero-dot {
+  width: 0.62rem;
+  height: 0.62rem;
+  padding: 0 !important;
+  border: 1px solid rgba(255, 248, 232, 0.78) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.22) !important;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+
+.ourfamily-hero-dot.is-active {
+  width: 1.45rem;
+  background: #e4c676 !important;
+}
+
+@media (max-width: 991.98px) {
+  .ourfamily-hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding: clamp(1.45rem, 5vw, 2.4rem);
+  }
+
+  .ourfamily-hero-copy {
+    max-width: none;
+  }
+
+  .ourfamily-hero-frame {
+    max-width: 720px;
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .ourfamily-hero {
+    border-width: 5px;
+    border-radius: 1.25rem;
+  }
+
+  .ourfamily-hero::after {
+    inset: 0.65rem;
+    border-width: 3px;
+  }
+
+  .ourfamily-hero-title,
+  .ourfamily-hero h1,
+  .ourfamily-hero h2 {
+    font-size: clamp(2rem, 12vw, 3rem) !important;
+  }
+
+  .ourfamily-hero-frame {
+    aspect-ratio: 4 / 3;
+    min-height: 205px;
+  }
+
+  .ourfamily-hero-slide figcaption {
+    left: 0.55rem;
+    right: 0.55rem;
+    bottom: 0.55rem;
+    font-size: 0.82rem;
+  }
+
+  .ourfamily-hero-dots {
+    right: 1.1rem;
+    bottom: 1.05rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ourfamily-hero-slide,
+  .ourfamily-hero-actions a {
+    transition: none !important;
+  }
+
+  .ourfamily-hero-slide.is-active {
+    transform: none !important;
+  }
+}
+
+
+/* Potts Hero Slideshow 1.0.0-beta.4 enhancements ----------------------- */
+.ourfamily-hero {
+  --ourfamily-hero-dark: var(--potts-blue-dark, #123b4b);
+  --ourfamily-hero-mid: var(--potts-blue, #185a71);
+  --ourfamily-hero-gold: var(--potts-gold, #b98638);
+  --ourfamily-hero-green: var(--potts-green, #51735e);
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.04)),
+    radial-gradient(circle at 76% 32%, rgba(255, 246, 220, 0.36), rgba(255, 246, 220, 0) 36%),
+    linear-gradient(135deg, var(--ourfamily-hero-dark) 0%, var(--ourfamily-hero-mid) 48%, var(--ourfamily-hero-gold) 100%) !important;
+}
+
+.ourfamily-hero::after {
+  border-color: var(--ourfamily-hero-gold, #b98638);
+}
+
+.ourfamily-hero-kicker,
+.ourfamily-hero-dot.is-active {
+  color: var(--ourfamily-hero-gold, #b98638) !important;
+}
+
+.ourfamily-hero-dot.is-active {
+  background: var(--ourfamily-hero-gold, #b98638) !important;
+}
+
+.ourfamily-hero-frame {
+  background:
+    linear-gradient(135deg, rgba(247, 235, 200, 0.98), var(--ourfamily-hero-gold, #b98638)),
+    #e8d7ad !important;
+}
+
+.ourfamily-hero-slide {
+  opacity: 0;
+  transform: none;
+  filter: none;
+  clip-path: inset(0 0 0 0);
+  transition: opacity var(--ourfamily-hero-transition-duration, 1.15s) ease, transform var(--ourfamily-hero-transition-duration, 1.15s) ease, filter var(--ourfamily-hero-transition-duration, 1.15s) ease, clip-path var(--ourfamily-hero-transition-duration, 1.15s) ease !important;
+}
+
+.ourfamily-hero-slide.is-active {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  clip-path: inset(0 0 0 0);
+}
+
+.ourfamily-hero.ourfamily-hero-transition-fade .ourfamily-hero-slide {
+  transform: none !important;
+}
+
+.ourfamily-hero.ourfamily-hero-transition-fade .ourfamily-hero-slide.is-active {
+  transform: none !important;
+}
+
+.ourfamily-hero.ourfamily-hero-transition-zoom .ourfamily-hero-slide {
+  transform: scale(1.015) !important;
+}
+
+.ourfamily-hero.ourfamily-hero-transition-zoom .ourfamily-hero-slide.is-active {
+  transform: scale(1.055) !important;
+  transition: opacity var(--ourfamily-hero-transition-duration, 1.15s) ease, transform var(--ourfamily-hero-zoom-duration, 6.8s) ease !important;
+}
+
+.ourfamily-hero.ourfamily-hero-transition-slide-left .ourfamily-hero-slide {
+  transform: translateX(7%) !important;
+}
+
+.ourfamily-hero.ourfamily-hero-transition-slide-left .ourfamily-hero-slide.is-active {
+  transform: translateX(0) !important;
+}
+
+.ourfamily-hero.ourfamily-hero-transition-slide-left .ourfamily-hero-slide.is-exiting {
+  transform: translateX(-5%) !important;
+}
+
+.ourfamily-hero.ourfamily-hero-transition-slide-up .ourfamily-hero-slide {
+  transform: translateY(7%) !important;
+}
+
+.ourfamily-hero.ourfamily-hero-transition-slide-up .ourfamily-hero-slide.is-active {
+  transform: translateY(0) !important;
+}
+
+.ourfamily-hero.ourfamily-hero-transition-slide-up .ourfamily-hero-slide.is-exiting {
+  transform: translateY(-5%) !important;
+}
+
+.ourfamily-hero.ourfamily-hero-transition-blur .ourfamily-hero-slide {
+  filter: blur(8px);
+  transform: scale(1.02) !important;
+}
+
+.ourfamily-hero.ourfamily-hero-transition-blur .ourfamily-hero-slide.is-active {
+  filter: blur(0);
+  transform: scale(1) !important;
+}
+
+.ourfamily-hero.ourfamily-hero-transition-random .ourfamily-hero-slide {
+  transform: scale(1.015) !important;
+}
+
+.ourfamily-hero.ourfamily-hero-transition-random .ourfamily-hero-slide.is-active {
+  transform: scale(1.055) !important;
+  transition: opacity var(--ourfamily-hero-transition-duration, 1.15s) ease, transform var(--ourfamily-hero-zoom-duration, 6.8s) ease !important;
+}
+
+
+/* Potts Hero Slideshow 1.0.0-beta.5 exact frame refinement ----------- */
+.ourfamily-hero.ourfamily-hero-frame-vintage .ourfamily-hero-frame,
+.ourfamily-hero:not(.ourfamily-hero-frame-simple):not(.ourfamily-hero-frame-none):not(.ourfamily-hero-frame-mount) .ourfamily-hero-frame {
+  padding: clamp(0.42rem, 0.8vw, 0.7rem) !important;
+  border: 2px solid rgba(255, 239, 190, 0.88) !important;
+  border-radius: clamp(0.95rem, 1.4vw, 1.25rem) !important;
+  background: rgba(244, 225, 179, 0.96) !important;
+  box-shadow:
+    0 22px 42px rgba(0, 0, 0, 0.26),
+    0 0 0 1px rgba(92, 64, 26, 0.22),
+    inset 0 0 0 3px rgba(255, 255, 255, 0.20) !important;
+}
+
+.ourfamily-hero.ourfamily-hero-frame-vintage .ourfamily-hero-media,
+.ourfamily-hero:not(.ourfamily-hero-frame-simple):not(.ourfamily-hero-frame-none):not(.ourfamily-hero-frame-mount) .ourfamily-hero-media {
+  border-radius: calc(clamp(0.95rem, 1.4vw, 1.25rem) - 0.38rem) !important;
+  background: rgba(35, 28, 20, 0.18) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(65, 44, 18, 0.33),
+    inset 0 0 22px rgba(0, 0, 0, 0.10) !important;
+}
+
+.ourfamily-hero.ourfamily-hero-frame-mount .ourfamily-hero-frame {
+  padding: clamp(0.55rem, 1.2vw, 0.92rem) !important;
+  border: 1px solid rgba(255, 239, 190, 0.82) !important;
+  border-radius: 1.25rem !important;
+  background:
+    linear-gradient(135deg, rgba(247, 235, 200, 0.98), var(--ourfamily-hero-gold, #b98638)),
+    #e8d7ad !important;
+  box-shadow:
+    0 24px 46px rgba(0, 0, 0, 0.28),
+    inset 0 0 0 3px rgba(120, 83, 32, 0.28),
+    inset 0 0 0 10px rgba(255, 255, 255, 0.15) !important;
+}
+
+.ourfamily-hero.ourfamily-hero-frame-mount .ourfamily-hero-media {
+  border-radius: 0.7rem !important;
+}
+
+.ourfamily-hero-slide figcaption {
+  bottom: 0.55rem !important;
+  left: 0.55rem !important;
+  right: 0.55rem !important;
+  background: rgba(12, 38, 45, 0.82) !important;
+}
+
+
+/* Potts Hero Slideshow 1.0.0-beta.6
+   Exact frame should sit tightly around the photo, not like an offset mount. */
+.ourfamily-hero.ourfamily-hero-frame-vintage .ourfamily-hero-frame,
+.ourfamily-hero:not(.ourfamily-hero-frame-simple):not(.ourfamily-hero-frame-none):not(.ourfamily-hero-frame-mount) .ourfamily-hero-frame {
+  padding: 0 !important;
+  border: clamp(0.38rem, 0.65vw, 0.62rem) solid rgba(244, 225, 179, 0.98) !important;
+  border-radius: clamp(0.95rem, 1.35vw, 1.2rem) !important;
+  background: rgba(244, 225, 179, 0.98) !important;
+  overflow: hidden !important;
+  box-shadow:
+    0 20px 42px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(92, 64, 26, 0.26),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.28) !important;
+}
+
+.ourfamily-hero.ourfamily-hero-frame-vintage .ourfamily-hero-media,
+.ourfamily-hero:not(.ourfamily-hero-frame-simple):not(.ourfamily-hero-frame-none):not(.ourfamily-hero-frame-mount) .ourfamily-hero-media {
+  border-radius: calc(clamp(0.95rem, 1.35vw, 1.2rem) - clamp(0.38rem, 0.65vw, 0.62rem)) !important;
+  background: rgba(35, 28, 20, 0.10) !important;
+  box-shadow: none !important;
+}
+
+.ourfamily-hero.ourfamily-hero-frame-vintage .ourfamily-hero-slide figcaption,
+.ourfamily-hero:not(.ourfamily-hero-frame-simple):not(.ourfamily-hero-frame-none):not(.ourfamily-hero-frame-mount) .ourfamily-hero-slide figcaption {
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  padding: 0.72rem 0.9rem !important;
+  border-radius: 0 !important;
+  background: linear-gradient(90deg, rgba(12, 38, 45, 0.92), rgba(12, 38, 45, 0.78)) !important;
+}
+
+/* Potts Hero Slideshow 1.0.0-beta.7
+   Caption/title refinement for exact-frame hero photos. */
+.ourfamily-hero {
+  --ourfamily-hero-caption-height: clamp(2.15rem, 2.9vw, 2.8rem);
+}
+
+.ourfamily-hero.ourfamily-hero-caption-hidden .ourfamily-hero-slide figcaption {
+  display: none !important;
+}
+
+.ourfamily-hero.ourfamily-hero-caption-below .ourfamily-hero-slide.has-caption {
+  display: flex !important;
+  flex-direction: column;
+}
+
+.ourfamily-hero.ourfamily-hero-caption-below .ourfamily-hero-slide.has-caption img {
+  flex: 1 1 auto;
+  height: calc(100% - var(--ourfamily-hero-caption-height)) !important;
+  min-height: 0;
+}
+
+.ourfamily-hero.ourfamily-hero-caption-below .ourfamily-hero-slide.has-caption figcaption {
+  position: static !important;
+  display: flex !important;
+  align-items: center;
+  min-height: var(--ourfamily-hero-caption-height);
+  margin: 0 !important;
+  padding: 0.5rem 0.82rem !important;
+  border-radius: 0 !important;
+  background: linear-gradient(90deg, rgba(12, 38, 45, 0.96), rgba(12, 38, 45, 0.88)) !important;
+  color: #fff8e8 !important;
+  font-size: clamp(0.78rem, 0.95vw, 0.95rem) !important;
+  font-weight: 760 !important;
+  line-height: 1.15 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  backdrop-filter: none;
+}
+
+.ourfamily-hero.ourfamily-hero-caption-overlay .ourfamily-hero-slide figcaption {
+  position: absolute !important;
+  left: 0.65rem !important;
+  right: 0.65rem !important;
+  bottom: 0.65rem !important;
+  display: block !important;
+  min-height: 0;
+  padding: 0.55rem 0.7rem !important;
+  border-radius: 0.75rem !important;
+  background: rgba(12, 38, 45, 0.78) !important;
+  color: #fff8e8 !important;
+  font-size: 0.92rem !important;
+  font-weight: 720 !important;
+  line-height: 1.3 !important;
+  white-space: normal;
+  backdrop-filter: blur(5px);
+}
+
+@media (max-width: 575.98px) {
+  .ourfamily-hero {
+    --ourfamily-hero-caption-height: 2.2rem;
+  }
+
+  .ourfamily-hero.ourfamily-hero-caption-below .ourfamily-hero-slide.has-caption figcaption {
+    font-size: 0.78rem !important;
+    padding-inline: 0.62rem !important;
+  }
+}
+
+
+/* Potts Hero Slideshow 1.0.0-beta.8
+   Proper below-frame captions: the caption strip is outside the photo frame,
+   so exact/vintage frames remain tight around the image and captions are not clipped. */
+.ourfamily-hero-visual {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  min-width: 0;
+}
+
+.ourfamily-hero-visual .ourfamily-hero-frame {
+  width: 100%;
+}
+
+.ourfamily-hero.ourfamily-hero-caption-below .ourfamily-hero-slide,
+.ourfamily-hero.ourfamily-hero-caption-below .ourfamily-hero-slide.has-caption {
+  display: block !important;
+}
+
+.ourfamily-hero.ourfamily-hero-caption-below .ourfamily-hero-slide img,
+.ourfamily-hero.ourfamily-hero-caption-below .ourfamily-hero-slide.has-caption img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  flex: none !important;
+  min-height: 0 !important;
+}
+
+.ourfamily-hero.ourfamily-hero-caption-below .ourfamily-hero-slide figcaption {
+  display: none !important;
+}
+
+.ourfamily-hero-caption-strip {
+  position: relative;
+  min-height: clamp(2.05rem, 2.55vw, 2.55rem);
+  margin-top: 0.62rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 248, 232, 0.24);
+  border-radius: 0.72rem;
+  background: linear-gradient(90deg, rgba(12, 38, 45, 0.92), rgba(12, 38, 45, 0.74));
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
+}
+
+.ourfamily-hero-caption-item {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: 0.48rem 0.82rem;
+  color: #fff8e8;
+  font-size: clamp(0.78rem, 0.95vw, 0.96rem);
+  font-weight: 760;
+  line-height: 1.2;
+  opacity: 0;
+  transform: translateY(0.25rem);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.ourfamily-hero-caption-item.is-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ourfamily-hero-caption-item.is-empty.is-active {
+  opacity: 0;
+}
+
+.ourfamily-hero.ourfamily-hero-caption-overlay .ourfamily-hero-caption-strip,
+.ourfamily-hero.ourfamily-hero-caption-hidden .ourfamily-hero-caption-strip {
+  display: none !important;
+}
+
+.ourfamily-hero.ourfamily-hero-caption-hidden .ourfamily-hero-slide figcaption {
+  display: none !important;
+}
+
+.ourfamily-hero.ourfamily-hero-caption-overlay .ourfamily-hero-slide figcaption {
+  position: absolute !important;
+  left: 0.65rem !important;
+  right: 0.65rem !important;
+  bottom: 0.65rem !important;
+  display: block !important;
+  min-height: 0;
+  padding: 0.55rem 0.7rem !important;
+  border-radius: 0.75rem !important;
+  background: rgba(12, 38, 45, 0.78) !important;
+  color: #fff8e8 !important;
+  font-size: 0.92rem !important;
+  font-weight: 720 !important;
+  line-height: 1.3 !important;
+  white-space: normal;
+  backdrop-filter: blur(5px);
+}
+
+@media (max-width: 575.98px) {
+  .ourfamily-hero-caption-strip {
+    min-height: 2.15rem;
+    margin-top: 0.45rem;
+  }
+
+  .ourfamily-hero-caption-item {
+    font-size: 0.78rem;
+    padding-inline: 0.65rem;
+  }
+}
+
+/* Potts Hero Slideshow 1.0.0-beta.12
+   Overlay captions should behave like a proper title strip on the image:
+   flush to the bottom edge, auto-height for wrapped text, and centred text. */
+.ourfamily-hero.ourfamily-hero-caption-overlay .ourfamily-hero-slide figcaption {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  max-height: min(48%, 9rem) !important;
+  margin: 0 !important;
+  padding: clamp(0.46rem, 0.9vw, 0.78rem) clamp(0.72rem, 1.35vw, 1.15rem) !important;
+  border-radius: 0 !important;
+  background: linear-gradient(90deg, rgba(12, 38, 45, 0.92), rgba(12, 38, 45, 0.78)) !important;
+  color: #fff8e8 !important;
+  font-size: clamp(0.78rem, 0.95vw, 0.98rem) !important;
+  font-weight: 760 !important;
+  line-height: 1.25 !important;
+  text-align: center !important;
+  white-space: normal !important;
+  overflow: hidden !important;
+  text-overflow: clip !important;
+  text-wrap: balance;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(5px);
+}
+
+.ourfamily-hero.ourfamily-hero-caption-overlay.ourfamily-hero-frame-none .ourfamily-hero-slide figcaption,
+.ourfamily-hero.ourfamily-hero-caption-overlay.ourfamily-hero-frame-simple .ourfamily-hero-slide figcaption,
+.ourfamily-hero.ourfamily-hero-caption-overlay.ourfamily-hero-frame-mount .ourfamily-hero-slide figcaption {
+  bottom: 0.35rem !important;
+  left: 0.35rem !important;
+  right: 0.35rem !important;
+  width: auto !important;
+  border-radius: 0.55rem !important;
+}
+
+@media (max-width: 575.98px) {
+  .ourfamily-hero.ourfamily-hero-caption-overlay .ourfamily-hero-slide figcaption {
+    font-size: 0.78rem !important;
+    padding: 0.42rem 0.62rem !important;
+    max-height: min(52%, 7rem) !important;
+  }
+}
+
+/* Potts Hero Slideshow 1.0.0-beta.13
+   Keep overlay captions visible when zoom/random effects are used.
+   The slide itself no longer scales in overlay mode; the image scales instead,
+   so the bottom caption strip remains anchored to the image edge. */
+.ourfamily-hero.ourfamily-hero-caption-overlay.ourfamily-hero-transition-zoom .ourfamily-hero-slide,
+.ourfamily-hero.ourfamily-hero-caption-overlay.ourfamily-hero-transition-zoom .ourfamily-hero-slide.is-active,
+.ourfamily-hero.ourfamily-hero-caption-overlay.ourfamily-hero-transition-random .ourfamily-hero-slide,
+.ourfamily-hero.ourfamily-hero-caption-overlay.ourfamily-hero-transition-random .ourfamily-hero-slide.is-active {
+  transform: none !important;
+}
+
+.ourfamily-hero.ourfamily-hero-caption-overlay.ourfamily-hero-transition-zoom .ourfamily-hero-slide img,
+.ourfamily-hero.ourfamily-hero-caption-overlay.ourfamily-hero-transition-random .ourfamily-hero-slide img {
+  transform: scale(1.015);
+  transform-origin: center center;
+  transition: transform var(--ourfamily-hero-zoom-duration, 6.8s) ease;
+}
+
+.ourfamily-hero.ourfamily-hero-caption-overlay.ourfamily-hero-transition-zoom .ourfamily-hero-slide.is-active img,
+.ourfamily-hero.ourfamily-hero-caption-overlay.ourfamily-hero-transition-random .ourfamily-hero-slide.is-active img {
+  transform: scale(1.055);
+}
+
+.ourfamily-hero.ourfamily-hero-caption-overlay .ourfamily-hero-slide figcaption {
+  z-index: 4 !important;
+  top: auto !important;
+  bottom: 0 !important;
+  min-height: 2.15rem !important;
+  height: auto !important;
+  overflow: visible !important;
+  transform: none !important;
+  box-sizing: border-box !important;
+}
+
+.ourfamily-hero.ourfamily-hero-caption-overlay.ourfamily-hero-frame-none .ourfamily-hero-slide figcaption,
+.ourfamily-hero.ourfamily-hero-caption-overlay.ourfamily-hero-frame-simple .ourfamily-hero-slide figcaption,
+.ourfamily-hero.ourfamily-hero-caption-overlay.ourfamily-hero-frame-mount .ourfamily-hero-slide figcaption {
+  bottom: 0.35rem !important;
+}
+
+
+/* Potts Hero Slideshow 1.0.0-beta.14
+   Allow administrators to raise/lower overlay captions from settings. */
+.ourfamily-hero.ourfamily-hero-caption-overlay .ourfamily-hero-slide figcaption {
+  bottom: var(--ourfamily-hero-overlay-caption-offset, 20px) !important;
+}
+
+.ourfamily-hero.ourfamily-hero-caption-overlay.ourfamily-hero-frame-none .ourfamily-hero-slide figcaption,
+.ourfamily-hero.ourfamily-hero-caption-overlay.ourfamily-hero-frame-simple .ourfamily-hero-slide figcaption,
+.ourfamily-hero.ourfamily-hero-caption-overlay.ourfamily-hero-frame-mount .ourfamily-hero-slide figcaption {
+  bottom: max(0.35rem, var(--ourfamily-hero-overlay-caption-offset, 20px)) !important;
+}
+
+
+/* Potts Hero Slideshow 1.0.0-beta.15
+   Make overlay caption vertical position robust even when theme CSS also applies. */
+.ourfamily-hero.ourfamily-hero-caption-overlay .ourfamily-hero-slide figcaption {
+  bottom: var(--ourfamily-hero-overlay-caption-offset, 20px) !important;
+}
+
+/* Potts Hero Slideshow 1.0.0
+   Theme-aware colour layer.
+
+   The slideshow remains standalone. Potts Modern Theme can provide --potts-* variables,
+   Bootstrap/webtrees themes can provide --bs-* variables, and safe fallbacks are used
+   when a theme exposes no useful palette values. */
+.ourfamily-hero {
+  --ourfamily-hero-primary-rgb: var(--potts-blue-rgb, var(--bs-primary-rgb, 24, 90, 113));
+  --ourfamily-hero-dark-rgb: var(--potts-blue-dark-rgb, 18, 59, 75);
+  --ourfamily-hero-accent-rgb: var(--potts-gold-rgb, var(--bs-warning-rgb, 185, 134, 56));
+  --ourfamily-hero-primary: var(--potts-blue, var(--bs-primary, rgb(var(--ourfamily-hero-primary-rgb))));
+  --ourfamily-hero-dark: var(--potts-blue-dark, #123b4b);
+  --ourfamily-hero-accent: var(--potts-gold, var(--bs-warning, #b98638));
+  --ourfamily-hero-green: var(--potts-green, #51735e);
+  --ourfamily-hero-surface: var(--bs-body-bg, #fffaf3);
+  --ourfamily-hero-text: var(--bs-body-color, #26363d);
+  --ourfamily-hero-on-dark: #fff8e8;
+  --ourfamily-hero-on-dark-muted: rgba(255, 248, 232, 0.95);
+  --ourfamily-hero-frame-surface: rgba(247, 235, 200, 0.98);
+  --ourfamily-hero-caption-bg: rgba(var(--ourfamily-hero-dark-rgb), 0.88);
+  --ourfamily-hero-caption-bg-strong: rgba(var(--ourfamily-hero-dark-rgb), 0.96);
+  --ourfamily-hero-button-bg: rgba(255, 248, 232, 0.98);
+  --ourfamily-hero-button-text: var(--ourfamily-hero-dark);
+  --ourfamily-hero-button-secondary-bg: rgba(255, 255, 255, 0.14);
+  --ourfamily-hero-button-secondary-text: #ffffff;
+  --ourfamily-hero-shadow-rgb: 35, 48, 56;
+  --ourfamily-hero-mid: var(--ourfamily-hero-primary);
+  --ourfamily-hero-gold: var(--ourfamily-hero-accent);
+
+  border-color: color-mix(in srgb, var(--ourfamily-hero-surface) 84%, #ffffff 16%);
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.04)),
+    radial-gradient(circle at 76% 32%, rgba(255, 246, 220, 0.34), rgba(255, 246, 220, 0) 36%),
+    linear-gradient(135deg, var(--ourfamily-hero-dark) 0%, var(--ourfamily-hero-primary) 50%, var(--ourfamily-hero-accent) 100%) !important;
+  box-shadow: 0 24px 58px rgba(var(--ourfamily-hero-shadow-rgb), 0.19);
+}
+
+.ourfamily-hero-palette-heritage {
+  --ourfamily-hero-primary-rgb: 24, 90, 113;
+  --ourfamily-hero-dark-rgb: 18, 59, 75;
+  --ourfamily-hero-accent-rgb: 185, 134, 56;
+  --ourfamily-hero-primary: #185a71;
+  --ourfamily-hero-dark: #123b4b;
+  --ourfamily-hero-accent: #b98638;
+  --ourfamily-hero-surface: #fff8e8;
+  --ourfamily-hero-text: #26363d;
+}
+
+.ourfamily-hero-palette-neutral-light {
+  --ourfamily-hero-primary-rgb: 108, 120, 126;
+  --ourfamily-hero-dark-rgb: 242, 239, 231;
+  --ourfamily-hero-accent-rgb: 150, 126, 86;
+  --ourfamily-hero-primary: #6c787e;
+  --ourfamily-hero-dark: #f2efe7;
+  --ourfamily-hero-accent: #967e56;
+  --ourfamily-hero-surface: #ffffff;
+  --ourfamily-hero-text: #26363d;
+  --ourfamily-hero-on-dark: #24323a;
+  --ourfamily-hero-on-dark-muted: rgba(38, 54, 61, 0.86);
+  --ourfamily-hero-button-bg: #26363d;
+  --ourfamily-hero-button-text: #ffffff;
+  --ourfamily-hero-button-secondary-bg: rgba(38, 54, 61, 0.08);
+  --ourfamily-hero-button-secondary-text: #26363d;
+  --ourfamily-hero-caption-bg: rgba(38, 54, 61, 0.82);
+  --ourfamily-hero-caption-bg-strong: rgba(38, 54, 61, 0.92);
+  --ourfamily-hero-shadow-rgb: 38, 54, 61;
+
+  background:
+    radial-gradient(circle at 78% 26%, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0) 32%),
+    linear-gradient(135deg, #f2efe7 0%, #ffffff 48%, #d8ccb7 100%) !important;
+}
+
+.ourfamily-hero-palette-neutral-dark {
+  --ourfamily-hero-primary-rgb: 83, 94, 102;
+  --ourfamily-hero-dark-rgb: 31, 43, 50;
+  --ourfamily-hero-accent-rgb: 187, 162, 119;
+  --ourfamily-hero-primary: #535e66;
+  --ourfamily-hero-dark: #1f2b32;
+  --ourfamily-hero-accent: #bba277;
+  --ourfamily-hero-surface: #f7f4ec;
+  --ourfamily-hero-text: #26363d;
+  --ourfamily-hero-on-dark: #fffaf3;
+  --ourfamily-hero-on-dark-muted: rgba(255, 250, 243, 0.9);
+  --ourfamily-hero-button-bg: rgba(255, 250, 243, 0.98);
+  --ourfamily-hero-button-text: #1f2b32;
+  --ourfamily-hero-button-secondary-bg: rgba(255, 255, 255, 0.12);
+  --ourfamily-hero-button-secondary-text: #ffffff;
+  --ourfamily-hero-caption-bg: rgba(31, 43, 50, 0.86);
+  --ourfamily-hero-caption-bg-strong: rgba(31, 43, 50, 0.96);
+  --ourfamily-hero-shadow-rgb: 31, 43, 50;
+}
+
+.ourfamily-hero-copy,
+.ourfamily-hero-placeholder {
+  color: var(--ourfamily-hero-on-dark) !important;
+}
+
+.ourfamily-hero-title,
+.ourfamily-hero h1,
+.ourfamily-hero h2 {
+  color: var(--ourfamily-hero-on-dark) !important;
+}
+
+.ourfamily-hero-copy p {
+  color: var(--ourfamily-hero-on-dark-muted) !important;
+}
+
+.ourfamily-hero-kicker,
+.ourfamily-hero-dot.is-active {
+  color: var(--ourfamily-hero-accent) !important;
+}
+
+.ourfamily-hero::after {
+  border-color: color-mix(in srgb, var(--ourfamily-hero-accent) 76%, #ffffff 24%) !important;
+}
+
+.ourfamily-hero-actions a {
+  background: var(--ourfamily-hero-button-bg) !important;
+  color: var(--ourfamily-hero-button-text) !important;
+}
+
+.ourfamily-hero-actions a.secondary {
+  background: var(--ourfamily-hero-button-secondary-bg) !important;
+  color: var(--ourfamily-hero-button-secondary-text) !important;
+}
+
+.ourfamily-hero-dot.is-active {
+  background: var(--ourfamily-hero-accent) !important;
+}
+
+.ourfamily-hero-frame,
+.ourfamily-hero.ourfamily-hero-frame-mount .ourfamily-hero-frame {
+  background:
+    linear-gradient(135deg, var(--ourfamily-hero-frame-surface), var(--ourfamily-hero-accent)),
+    var(--ourfamily-hero-frame-surface) !important;
+}
+
+.ourfamily-hero.ourfamily-hero-frame-vintage .ourfamily-hero-frame,
+.ourfamily-hero:not(.ourfamily-hero-frame-simple):not(.ourfamily-hero-frame-none):not(.ourfamily-hero-frame-mount) .ourfamily-hero-frame {
+  border-color: color-mix(in srgb, var(--ourfamily-hero-accent) 28%, #ffffff 72%) !important;
+  background: color-mix(in srgb, var(--ourfamily-hero-accent) 28%, #ffffff 72%) !important;
+}
+
+.ourfamily-hero-slide figcaption,
+.ourfamily-hero.ourfamily-hero-frame-vintage .ourfamily-hero-slide figcaption,
+.ourfamily-hero:not(.ourfamily-hero-frame-simple):not(.ourfamily-hero-frame-none):not(.ourfamily-hero-frame-mount) .ourfamily-hero-slide figcaption,
+.ourfamily-hero.ourfamily-hero-caption-overlay .ourfamily-hero-slide figcaption {
+  background: linear-gradient(90deg, var(--ourfamily-hero-caption-bg-strong), var(--ourfamily-hero-caption-bg)) !important;
+  color: #fff8e8 !important;
+}
+
+.ourfamily-hero-caption-strip {
+  background: linear-gradient(90deg, var(--ourfamily-hero-caption-bg-strong), var(--ourfamily-hero-caption-bg)) !important;
+}
