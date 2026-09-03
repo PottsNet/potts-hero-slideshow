@@ -1,0 +1,216 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Potts Hero Slideshow\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Potts Hero Slideshow"
+msgstr ""
+
+msgid "A standalone, theme-aware homepage hero banner with a family photo slideshow."
+msgstr ""
+
+msgid "The hero slideshow settings have been saved."
+msgstr ""
+
+msgid "The hero image has been uploaded."
+msgstr ""
+
+msgid "The hero image has been deleted."
+msgstr ""
+
+msgid "Manage the full-width homepage hero banner, rotating images, captions, buttons and display timing."
+msgstr ""
+
+msgid "%s slide"
+msgid_plural "%s slides"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%s enabled"
+msgid_plural "%s enabled"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Hero preview"
+msgstr ""
+
+msgid "Live preview"
+msgstr ""
+
+msgid "This preview uses the current saved settings. Save to refresh after making changes."
+msgstr ""
+
+msgid "1. Hero text"
+msgstr ""
+
+msgid "Heading and introduction"
+msgstr ""
+
+msgid "Show hero banner"
+msgstr ""
+
+msgid "Turn the homepage hero on or off."
+msgstr ""
+
+msgid "Small heading"
+msgstr ""
+
+msgid "Main heading"
+msgstr ""
+
+msgid "Subtitle"
+msgstr ""
+
+msgid "2. Buttons"
+msgstr ""
+
+msgid "Calls to action"
+msgstr ""
+
+msgid "Show first button"
+msgstr ""
+
+msgid "Show second button"
+msgstr ""
+
+msgid "First button text"
+msgstr ""
+
+msgid "First button URL"
+msgstr ""
+
+msgid "Second button text"
+msgstr ""
+
+msgid "Second button URL"
+msgstr ""
+
+msgid "3. Display"
+msgstr ""
+
+msgid "Style and behaviour"
+msgstr ""
+
+msgid "Show image selector dots"
+msgstr ""
+
+msgid "Randomise image order"
+msgstr ""
+
+msgid "Shuffle the enabled hero images into a fresh order each time the homepage is loaded."
+msgstr ""
+
+msgid "Slide interval"
+msgstr ""
+
+msgid "Milliseconds. 7000 equals 7 seconds."
+msgstr ""
+
+msgid "Transition speed"
+msgstr ""
+
+msgid "Milliseconds. 300 is quick; 1500–2500 gives a slower fade."
+msgstr ""
+
+msgid "Transition effect"
+msgstr ""
+
+msgid "Choose random to vary the effect each time the image changes."
+msgstr ""
+
+msgid "Image fit"
+msgstr ""
+
+msgid "Frame style"
+msgstr ""
+
+msgid "Hero palette"
+msgstr ""
+
+msgid "Automatic uses theme variables where available, with safe fallbacks for other webtrees themes."
+msgstr ""
+
+msgid "Photo style"
+msgstr ""
+
+msgid "Image title display"
+msgstr ""
+
+msgid "Choose how slide captions appear on the hero image."
+msgstr ""
+
+msgid "Overlay title strip height position"
+msgstr ""
+
+msgid "Only affects overlay captions. Increase the value to raise the title strip above the bottom of the image."
+msgstr ""
+
+msgid "4. Upload images"
+msgstr ""
+
+msgid "Add family photographs"
+msgstr ""
+
+msgid "Choose family photographs"
+msgstr ""
+
+msgid "You can upload JPG, PNG, WEBP or GIF images. The files are stored in the webtrees data folder so module updates do not overwrite them."
+msgstr ""
+
+msgid "5. Slides"
+msgstr ""
+
+msgid "Drag slides by the handle, or use the up/down buttons. Add captions and alt text for better accessibility."
+msgstr ""
+
+msgid "No hero images have been uploaded yet."
+msgstr ""
+
+msgid "Caption"
+msgstr ""
+
+msgid "Alt text"
+msgstr ""
+
+msgid "Focal point"
+msgstr ""
+
+msgid "Stored file"
+msgstr ""
+
+msgid "Slide order controls"
+msgstr ""
+
+msgid "Drag to reorder"
+msgstr ""
+
+msgid "Move up"
+msgstr ""
+
+msgid "Move down"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
+msgid "Delete this hero image?"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Save changes when you are happy with the hero."
+msgstr ""
+
+msgid "The preview updates after saving. Potts Modern Theme can enhance the block by placing it above the homepage columns."
+msgstr ""
+
+msgid "Restore the default hero settings? This will not delete uploaded images."
+msgstr ""
+
+msgid "Restore defaults"
+msgstr ""
+
+msgid "Save settings"
+msgstr ""
