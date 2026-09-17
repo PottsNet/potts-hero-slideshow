@@ -1,0 +1,81 @@
+name: Refine multi-tree migration
+
+on:
+  push:
+    branches:
+      - feature/multi-tree-hero
+    paths:
+      - .github/workflows/refine-migration.yml
+
+permissions:
+  contents: write
+
+env:
+  MODULE_DIR: potts_hero_slideshow
+  ASSET_NAME: potts-hero-slideshow-1.1.0-beta.1.zip
+
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/multi-tree-hero
+
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Apply migration refinement
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/refine_migration.py
+
+      - name: Validate source
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file"
+          done < <(find . -type f \( -name '*.php' -o -name '*.phtml' \) -not -path './.git/*' -print0)
+          grep -Fq "use Fisharebest\\Webtrees\\DB;" PottsHeroSlideshow.php
+          grep -Fq "->where('module_name', '=', \$this->name())" PottsHeroSlideshow.php
+          grep -Fq "in_array(\$tree->id(), \$hero_tree_ids, true)" PottsHeroSlideshow.php
+          test "$(cat latest-version.txt)" = '1.0.1'
+
+      - name: Build beta ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf staging dist
+          mkdir -p "staging/${MODULE_DIR}" dist
+          cp module.php PottsHeroSlideshow.php metadata.json README.md CHANGELOG.md LICENSE latest-version.txt "staging/${MODULE_DIR}/"
+          cp -R resources "staging/${MODULE_DIR}/"
+          (cd staging && zip -qr "../dist/${ASSET_NAME}" "${MODULE_DIR}")
+          unzip -t "dist/${ASSET_NAME}"
+          sha256sum "dist/${ASSET_NAME}" | tee "dist/${ASSET_NAME}.sha256"
+
+      - name: Upload beta package
+        uses: actions/upload-artifact@v4
+        with:
+          name: potts-hero-slideshow-1.1.0-beta.1-final
+          path: |
+            dist/${{ env.ASSET_NAME }}
+            dist/${{ env.ASSET_NAME }}.sha256
+          if-no-files-found: error
+
+      - name: Commit refinement only
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf staging dist
+          git rm --ignore-unmatch .github/workflows/refine-migration.yml tools/refine_migration.py
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add PottsHeroSlideshow.php
+          git commit -m 'Target legacy hero migration to configured tree'
+          git push origin HEAD:feature/multi-tree-hero
