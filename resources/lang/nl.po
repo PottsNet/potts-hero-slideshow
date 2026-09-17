@@ -1,0 +1,224 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Potts Hero Slideshow\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: TheDutchJewel <thedutchjewel@gmail.com>\n"
+"Language-Team: \n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.9\n"
+
+msgid "Potts Hero Slideshow"
+msgstr "Potts Hero-diavoorstelling"
+
+msgid "A standalone, theme-aware homepage hero banner with a family photo slideshow."
+msgstr "Een zelfstandige, thema-afhankelijke hero-banner voor de startpagina met een diavoorstelling van familiefoto's."
+
+msgid "The hero slideshow settings have been saved."
+msgstr "De instellingen van de hero-diavoorstelling zijn opgeslagen."
+
+msgid "The hero image has been uploaded."
+msgstr "De hero-afbeelding is geüpload."
+
+msgid "The hero image has been deleted."
+msgstr "De hero-afbeelding is verwijderd."
+
+msgid "Manage the full-width homepage hero banner, rotating images, captions, buttons and display timing."
+msgstr "Beheer de paginabrede hero-banner op de startpagina, roterende afbeeldingen, onderschriften, knoppen en weergavetiming."
+
+msgid "%s slide"
+msgid_plural "%s slides"
+msgstr[0] "%s dia"
+msgstr[1] "%s dia's"
+
+msgid "%s enabled"
+msgid_plural "%s enabled"
+msgstr[0] "%s ingeschakeld"
+msgstr[1] "%s ingeschakeld"
+
+msgid "Hero preview"
+msgstr "Hero-voorbeeld"
+
+msgid "Live preview"
+msgstr "Livevoorbeeld"
+
+msgid "This preview uses the current saved settings. Save to refresh after making changes."
+msgstr "Dit voorbeeld gebruikt de momenteel opgeslagen instellingen. Sla de wijzigingen op om het voorbeeld te vernieuwen."
+
+msgid "1. Hero text"
+msgstr "1. Hero-tekst"
+
+msgid "Heading and introduction"
+msgstr "Koptekst en introductie"
+
+msgid "Show hero banner"
+msgstr "Toon hero-banner"
+
+msgid "Turn the homepage hero on or off."
+msgstr "Schakel de hero-banner op de startpagina in of uit."
+
+msgid "Small heading"
+msgstr "Kleine koptekst"
+
+msgid "Main heading"
+msgstr "Hoofdkoptekst"
+
+msgid "Subtitle"
+msgstr "Ondertitel"
+
+msgid "2. Buttons"
+msgstr "2. Knoppen"
+
+msgid "Calls to action"
+msgstr "Oproepen tot actie"
+
+msgid "Show first button"
+msgstr "Toon eerste knop"
+
+msgid "Show second button"
+msgstr "Toon tweede knop"
+
+msgid "First button text"
+msgstr "Tekst van eerste knop"
+
+msgid "First button URL"
+msgstr "URL van eerste knop"
+
+msgid "Second button text"
+msgstr "Tekst van tweede knop"
+
+msgid "Second button URL"
+msgstr "URL van tweede knop"
+
+msgid "3. Display"
+msgstr "3. Weergave"
+
+msgid "Style and behaviour"
+msgstr "Stijl en gedrag"
+
+msgid "Show image selector dots"
+msgstr "Afbeeldingsselectiepunten weergeven"
+
+msgid "Randomise image order"
+msgstr "Afbeeldingsvolgorde willekeurig maken"
+
+msgid "Shuffle the enabled hero images into a fresh order each time the homepage is loaded."
+msgstr "Zet de ingeschakelde hero-afbeeldingen in een nieuwe willekeurige volgorde telkens wanneer de startpagina wordt geladen."
+
+msgid "Slide interval"
+msgstr "Dia-interval"
+
+msgid "Milliseconds. 7000 equals 7 seconds."
+msgstr "Milliseconden. 7000 komt overeen met 7 seconden."
+
+msgid "Transition speed"
+msgstr "Overgangssnelheid"
+
+msgid "Milliseconds. 300 is quick; 1500–2500 gives a slower fade."
+msgstr "Milliseconden. 300 is snel; 1500–2500 geeft een langzamere vervaging."
+
+msgid "Transition effect"
+msgstr "Overgangseffect"
+
+msgid "Choose random to vary the effect each time the image changes."
+msgstr "Kies willekeurig om het effect te laten variëren telkens wanneer de afbeelding wisselt."
+
+msgid "Image fit"
+msgstr "Afbeeldingsweergave"
+
+msgid "Frame style"
+msgstr "Framestijl"
+
+msgid "Hero palette"
+msgstr "Hero-kleurenpalet"
+
+msgid "Automatic uses theme variables where available, with safe fallbacks for other webtrees themes."
+msgstr "Automatisch gebruikt themavariabelen waar beschikbaar, met veilige terugvalopties voor andere webtrees-thema's."
+
+msgid "Photo style"
+msgstr "Fotostijl"
+
+msgid "Image title display"
+msgstr "Weergave van afbeeldingstitel"
+
+msgid "Choose how slide captions appear on the hero image."
+msgstr "Kies hoe dia-onderschriften op de hero-afbeelding worden weergegeven."
+
+msgid "Overlay title strip height position"
+msgstr "Hoogtepositie van overlay-titelbalk"
+
+msgid "Only affects overlay captions. Increase the value to raise the title strip above the bottom of the image."
+msgstr "Heeft alleen invloed op overlay-onderschriften. Verhoog deze waarde om de titelbalk verder boven de onderkant van de afbeelding te plaatsen."
+
+msgid "4. Upload images"
+msgstr "4. Afbeeldingen uploaden"
+
+msgid "Add family photographs"
+msgstr "Familiefoto's toevoegen"
+
+msgid "Choose family photographs"
+msgstr "Familiefoto's kiezen"
+
+msgid "You can upload JPG, PNG, WEBP or GIF images. The files are stored in the webtrees data folder so module updates do not overwrite them."
+msgstr "U kunt JPG-, PNG-, WEBP- of GIF-afbeeldingen uploaden. De bestanden worden opgeslagen in de gegevensmap van webtrees zodat module-updates ze niet overschrijven."
+
+msgid "5. Slides"
+msgstr "5. Dia's"
+
+msgid "Drag slides by the handle, or use the up/down buttons. Add captions and alt text for better accessibility."
+msgstr "Sleep dia's met de sleepgreep of gebruik de knoppen omhoog/omlaag. Voeg bijschriften en alt-tekst toe voor een betere toegankelijkheid."
+
+msgid "No hero images have been uploaded yet."
+msgstr "Er zijn nog geen hero-afbeeldingen geüpload."
+
+msgid "Caption"
+msgstr "Bijschrift"
+
+msgid "Alt text"
+msgstr "Alt-tekst"
+
+msgid "Focal point"
+msgstr "Focuspunt"
+
+msgid "Stored file"
+msgstr "Opgeslagen bestand"
+
+msgid "Slide order controls"
+msgstr "Besturing voor dia-volgorde"
+
+msgid "Drag to reorder"
+msgstr "Sleep om de volgorde te wijzigen"
+
+msgid "Move up"
+msgstr "Omhoog verplaatsen"
+
+msgid "Move down"
+msgstr "Omlaag verplaatsen"
+
+msgid "Enabled"
+msgstr "Ingeschakeld"
+
+msgid "Delete this hero image?"
+msgstr "Deze hero-afbeelding verwijderen?"
+
+msgid "Delete"
+msgstr "Verwijderen"
+
+msgid "Save changes when you are happy with the hero."
+msgstr "Sla de wijzigingen op wanneer u tevreden bent met de hero."
+
+msgid "The preview updates after saving. Potts Modern Theme can enhance the block by placing it above the homepage columns."
+msgstr "De voorbeeldweergave wordt bijgewerkt na het opslaan. Potts Modern Theme kan het blok verbeteren door het boven de startpaginakolommen te plaatsen."
+
+msgid "Restore the default hero settings? This will not delete uploaded images."
+msgstr "De standaard hero-instellingen herstellen? Geüploade afbeeldingen worden hierdoor niet verwijderd."
+
+msgid "Restore defaults"
+msgstr "Standaardinstellingen herstellen"
+
+msgid "Save settings"
+msgstr "Instellingen opslaan"
