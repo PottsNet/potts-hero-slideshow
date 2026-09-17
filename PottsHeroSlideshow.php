@@ -60,6 +60,7 @@ use function mkdir;
 use function pathinfo;
 use function preg_replace;
 use function random_bytes;
+use function rawurlencode;
 use function redirect;
 use function route;
 use function scandir;
@@ -332,7 +333,7 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
         }
 
         if ($task === 'reset') {
-            foreach (self::DEFAULTS as $key => $value) {
+            foreach ($this->defaultsForTree($tree) as $key => $value) {
                 $this->setTreePreference($tree, $key, $value);
             }
             $this->markTreeConfigured($tree);
@@ -470,6 +471,19 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
         return 'TREE_' . $tree->id() . '_' . $key;
     }
 
+    /** @return array<string,string> */
+    private function defaultsForTree(Tree $tree): array
+    {
+        $defaults = self::DEFAULTS;
+        $tree_path = '/tree/' . rawurlencode($tree->name());
+
+        $defaults['TITLE'] = 'Welcome to ' . $tree->title();
+        $defaults['BUTTON_1_URL'] = $tree_path;
+        $defaults['BUTTON_2_URL'] = $tree_path . '/books';
+
+        return $defaults;
+    }
+
     private function treePreference(Tree $tree, string $key, string $default): string
     {
         return $this->getPreference($this->treePreferenceKey($tree, $key), $default);
@@ -506,7 +520,7 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
             return;
         }
 
-        foreach (self::DEFAULTS as $key => $default) {
+        foreach ($this->defaultsForTree($tree) as $key => $default) {
             $this->setTreePreference($tree, $key, $this->getPreference($key, $default));
         }
 
@@ -519,8 +533,9 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
     private function settings(Tree $tree): array
     {
         $settings = [];
+        $defaults = $this->defaultsForTree($tree);
 
-        foreach (self::DEFAULTS as $key => $default) {
+        foreach ($defaults as $key => $default) {
             if ($key === 'SLIDES_JSON') {
                 continue;
             }
@@ -571,6 +586,8 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
     /** @param array<string,mixed> $data */
     private function saveSettings(Tree $tree, array $data): void
     {
+        $defaults = $this->defaultsForTree($tree);
+
         foreach (['ENABLED', 'SHOW_BUTTON_1', 'SHOW_BUTTON_2', 'DOTS', 'RANDOM_START'] as $key) {
             $field = strtolower($key);
             $this->setTreePreference($tree, $key, isset($data[$field]) && (string) $data[$field] === '1' ? '1' : '0');
@@ -578,36 +595,36 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
 
         foreach (['KICKER', 'TITLE', 'SUBTITLE', 'BUTTON_1_TEXT', 'BUTTON_1_URL', 'BUTTON_2_TEXT', 'BUTTON_2_URL'] as $key) {
             $field = strtolower($key);
-            $value = isset($data[$field]) && is_string($data[$field]) ? trim($data[$field]) : self::DEFAULTS[$key];
+            $value = isset($data[$field]) && is_string($data[$field]) ? trim($data[$field]) : $defaults[$key];
             $this->setTreePreference($tree, $key, $value);
         }
 
-        $interval = isset($data['interval']) ? (int) $data['interval'] : (int) self::DEFAULTS['INTERVAL'];
+        $interval = isset($data['interval']) ? (int) $data['interval'] : (int) $defaults['INTERVAL'];
         $this->setTreePreference($tree, 'INTERVAL', (string) max(3500, $interval));
 
-        $transition_speed = isset($data['transition_speed']) ? (int) $data['transition_speed'] : (int) self::DEFAULTS['TRANSITION_SPEED'];
+        $transition_speed = isset($data['transition_speed']) ? (int) $data['transition_speed'] : (int) $defaults['TRANSITION_SPEED'];
         $this->setTreePreference($tree, 'TRANSITION_SPEED', (string) min(5000, max(300, $transition_speed)));
 
-        $caption_offset = isset($data['caption_offset']) ? (int) $data['caption_offset'] : (int) self::DEFAULTS['CAPTION_OFFSET'];
+        $caption_offset = isset($data['caption_offset']) ? (int) $data['caption_offset'] : (int) $defaults['CAPTION_OFFSET'];
         $this->setTreePreference($tree, 'CAPTION_OFFSET', (string) min(120, max(0, $caption_offset)));
 
-        $fit = isset($data['image_fit']) && is_string($data['image_fit']) ? $data['image_fit'] : self::DEFAULTS['IMAGE_FIT'];
-        $this->setTreePreference($tree, 'IMAGE_FIT', array_key_exists($fit, $this->fitChoices()) ? $fit : self::DEFAULTS['IMAGE_FIT']);
+        $fit = isset($data['image_fit']) && is_string($data['image_fit']) ? $data['image_fit'] : $defaults['IMAGE_FIT'];
+        $this->setTreePreference($tree, 'IMAGE_FIT', array_key_exists($fit, $this->fitChoices()) ? $fit : $defaults['IMAGE_FIT']);
 
-        $frame = isset($data['frame_style']) && is_string($data['frame_style']) ? $data['frame_style'] : self::DEFAULTS['FRAME_STYLE'];
-        $this->setTreePreference($tree, 'FRAME_STYLE', array_key_exists($frame, $this->frameChoices()) ? $frame : self::DEFAULTS['FRAME_STYLE']);
+        $frame = isset($data['frame_style']) && is_string($data['frame_style']) ? $data['frame_style'] : $defaults['FRAME_STYLE'];
+        $this->setTreePreference($tree, 'FRAME_STYLE', array_key_exists($frame, $this->frameChoices()) ? $frame : $defaults['FRAME_STYLE']);
 
-        $colour = isset($data['colour_mode']) && is_string($data['colour_mode']) ? $data['colour_mode'] : self::DEFAULTS['COLOUR_MODE'];
-        $this->setTreePreference($tree, 'COLOUR_MODE', array_key_exists($colour, $this->colourChoices()) ? $colour : self::DEFAULTS['COLOUR_MODE']);
+        $colour = isset($data['colour_mode']) && is_string($data['colour_mode']) ? $data['colour_mode'] : $defaults['COLOUR_MODE'];
+        $this->setTreePreference($tree, 'COLOUR_MODE', array_key_exists($colour, $this->colourChoices()) ? $colour : $defaults['COLOUR_MODE']);
 
-        $palette = isset($data['palette']) && is_string($data['palette']) ? $data['palette'] : self::DEFAULTS['PALETTE'];
-        $this->setTreePreference($tree, 'PALETTE', array_key_exists($palette, $this->paletteChoices()) ? $palette : self::DEFAULTS['PALETTE']);
+        $palette = isset($data['palette']) && is_string($data['palette']) ? $data['palette'] : $defaults['PALETTE'];
+        $this->setTreePreference($tree, 'PALETTE', array_key_exists($palette, $this->paletteChoices()) ? $palette : $defaults['PALETTE']);
 
-        $transition = isset($data['transition']) && is_string($data['transition']) ? $data['transition'] : self::DEFAULTS['TRANSITION'];
-        $this->setTreePreference($tree, 'TRANSITION', array_key_exists($transition, $this->transitionChoices()) ? $transition : self::DEFAULTS['TRANSITION']);
+        $transition = isset($data['transition']) && is_string($data['transition']) ? $data['transition'] : $defaults['TRANSITION'];
+        $this->setTreePreference($tree, 'TRANSITION', array_key_exists($transition, $this->transitionChoices()) ? $transition : $defaults['TRANSITION']);
 
-        $caption_style = isset($data['caption_style']) && is_string($data['caption_style']) ? $data['caption_style'] : self::DEFAULTS['CAPTION_STYLE'];
-        $this->setTreePreference($tree, 'CAPTION_STYLE', array_key_exists($caption_style, $this->captionChoices()) ? $caption_style : self::DEFAULTS['CAPTION_STYLE']);
+        $caption_style = isset($data['caption_style']) && is_string($data['caption_style']) ? $data['caption_style'] : $defaults['CAPTION_STYLE'];
+        $this->setTreePreference($tree, 'CAPTION_STYLE', array_key_exists($caption_style, $this->captionChoices()) ? $caption_style : $defaults['CAPTION_STYLE']);
         $this->markTreeConfigured($tree);
     }
 
