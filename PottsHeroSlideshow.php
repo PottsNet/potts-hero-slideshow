@@ -24,6 +24,8 @@ use Fisharebest\Webtrees\Module\ModuleConfigTrait;
 use Fisharebest\Webtrees\Module\ModuleCustomInterface;
 use Fisharebest\Webtrees\Module\ModuleCustomTrait;
 use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Services\TreeService;
+use Fisharebest\Webtrees\Site;
 use Fisharebest\Webtrees\Tree;
 use Fisharebest\Webtrees\Validator;
 use Fisharebest\Webtrees\View;
@@ -37,6 +39,7 @@ use function array_key_exists;
 use function array_values;
 use function basename;
 use function bin2hex;
+use function copy;
 use function dirname;
 use function file_exists;
 use function file_get_contents;
@@ -79,8 +82,10 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
     use ModuleConfigTrait;
     use ModuleBlockTrait;
 
-    private const CUSTOM_VERSION = '1.0.1';
+    private const CUSTOM_VERSION = '1.1.0-beta.1';
     private const LATEST_VERSION_URL = 'https://raw.githubusercontent.com/PottsNet/potts-hero-slideshow/main/latest-version.txt';
+    private const LEGACY_MIGRATION_PREF = 'MULTI_TREE_LEGACY_TREE_ID';
+    private const TREE_CONFIGURED = 'CONFIGURED';
 
     /** @var array<string,string> */
     private const DEFAULTS = [
@@ -228,14 +233,15 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
     public function getBlock(Tree $tree, int $block_id, string $context, array $config = []): string
     {
         $this->pushAssets();
+        $this->ensureTreeConfiguration($tree);
 
-        $settings = $this->settings();
+        $settings = $this->settings($tree);
 
         if ($settings['ENABLED'] !== '1') {
             return '';
         }
 
-        $slides = array_values(array_filter($this->slides(), static fn (array $slide): bool => $slide['enabled'] === '1'));
+        $slides = array_values(array_filter($this->slides($tree), static fn (array $slide): bool => $slide['enabled'] === '1'));
 
         $content = view('potts-hero-slideshow::block/hero', [
             'settings' => $settings,
@@ -268,22 +274,28 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
         View::registerNamespace('potts-hero-slideshow', $this->resourcesFolder() . 'views/');
         $this->pushAssets();
 
+        $tree = $this->adminTreeFromRequest($request);
+        $this->ensureTreeConfiguration($tree);
+
         return $this->viewResponse('potts-hero-slideshow::admin/settings', [
             'title'          => I18N::translate('Potts Hero Slideshow settings'),
             'action_url'     => route('module', [
                 'module' => $this->name(),
                 'action' => 'Admin',
             ]),
-            'settings'           => $this->settings(),
-            'slides'             => $this->slides(),
-            'fit_choices'        => $this->fitChoices(),
-            'frame_choices'      => $this->frameChoices(),
-            'colour_choices'     => $this->colourChoices(),
-            'palette_choices'    => $this->paletteChoices(),
-            'transition_choices' => $this->transitionChoices(),
-            'caption_choices'    => $this->captionChoices(),
-            'start_choices'      => $this->startChoices(),
-            'focal_choices'      => $this->focalChoices(),
+            'tree_choices'        => $this->treeChoices(),
+            'selected_tree_id'    => (string) $tree->id(),
+            'selected_tree_title' => $tree->title(),
+            'settings'            => $this->settings($tree),
+            'slides'              => $this->slides($tree),
+            'fit_choices'         => $this->fitChoices(),
+            'frame_choices'       => $this->frameChoices(),
+            'colour_choices'      => $this->colourChoices(),
+            'palette_choices'     => $this->paletteChoices(),
+            'transition_choices'  => $this->transitionChoices(),
+            'caption_choices'     => $this->captionChoices(),
+            'start_choices'       => $this->startChoices(),
+            'focal_choices'       => $this->focalChoices(),
             'saved'          => Validator::queryParams($request)->boolean('saved', false),
             'uploaded'       => Validator::queryParams($request)->boolean('uploaded', false),
             'deleted'        => Validator::queryParams($request)->boolean('deleted', false),
@@ -299,46 +311,67 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
         $parsed = $request->getParsedBody();
         $data   = is_array($parsed) ? $parsed : [];
         $task   = isset($data['task']) && is_string($data['task']) ? $data['task'] : 'save';
+        $tree_id = isset($data['tree_id']) ? (int) $data['tree_id'] : 0;
+        $tree = $this->treeById($tree_id);
+
+        if (!$tree instanceof Tree) {
+            throw new HttpNotFoundException();
+        }
+
+        $this->ensureTreeConfiguration($tree);
 
         if (isset($data['delete_slide']) && is_string($data['delete_slide']) && $data['delete_slide'] !== '') {
-            $this->deleteSlide($data['delete_slide']);
+            $this->deleteSlide($tree, $data['delete_slide']);
 
             return redirect(route('module', [
-                'module'  => $this->name(),
-                'action'  => 'Admin',
-                'deleted' => '1',
+                'module'   => $this->name(),
+                'action'   => 'Admin',
+                'tree_id'  => (string) $tree->id(),
+                'deleted'  => '1',
             ]));
         }
 
         if ($task === 'reset') {
             foreach (self::DEFAULTS as $key => $value) {
-                $this->setPreference($key, $value);
+                $this->setTreePreference($tree, $key, $value);
             }
+            $this->markTreeConfigured($tree);
 
             return redirect(route('module', [
-                'module' => $this->name(),
-                'action' => 'Admin',
-                'saved'  => '1',
+                'module'  => $this->name(),
+                'action'  => 'Admin',
+                'tree_id' => (string) $tree->id(),
+                'saved'   => '1',
             ]));
         }
 
-        $this->saveSettings($data);
-        $this->saveSlides($data);
+        $this->saveSettings($tree, $data);
+        $this->saveSlides($tree, $data);
 
-        $uploaded = $this->handleUploads($request);
+        $uploaded = $this->handleUploads($tree, $request);
 
         return redirect(route('module', [
             'module'   => $this->name(),
             'action'   => 'Admin',
+            'tree_id'  => (string) $tree->id(),
             $uploaded ? 'uploaded' : 'saved' => '1',
         ]));
     }
 
     public function getImageAction(ServerRequestInterface $request): ResponseInterface
     {
+        $tree_id = Validator::queryParams($request)->integer('tree_id', 0);
+        $tree = $this->treeById($tree_id);
+
+        if (!$tree instanceof Tree) {
+            throw new HttpNotFoundException();
+        }
+
+        $this->ensureTreeConfiguration($tree);
+
         $file = Validator::queryParams($request)->string('file', '');
         $file = basename($file);
-        $path = $this->imageDirectory() . $file;
+        $path = $this->imageDirectory($tree) . $file;
 
         if ($file === '' || !is_file($path) || !is_readable($path)) {
             throw new HttpNotFoundException();
@@ -368,8 +401,122 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
         }
     }
 
+    private function treeService(): TreeService
+    {
+        return Registry::container()->get(TreeService::class);
+    }
+
+    private function treeById(int $tree_id): ?Tree
+    {
+        if ($tree_id <= 0) {
+            return null;
+        }
+
+        $tree = $this->treeService()->all()->first(static fn (Tree $tree): bool => $tree->id() === $tree_id);
+
+        return $tree instanceof Tree ? $tree : null;
+    }
+
+    private function adminTreeFromRequest(ServerRequestInterface $request): Tree
+    {
+        $tree_id = Validator::queryParams($request)->integer('tree_id', 0);
+        $tree = $this->treeById($tree_id);
+
+        if ($tree instanceof Tree) {
+            return $tree;
+        }
+
+        $tree = $this->legacyMigrationTree();
+
+        if ($tree instanceof Tree) {
+            return $tree;
+        }
+
+        throw new HttpNotFoundException();
+    }
+
     /** @return array<string,string> */
-    private function settings(): array
+    private function treeChoices(): array
+    {
+        $choices = [];
+
+        foreach ($this->treeService()->all() as $tree) {
+            $choices[(string) $tree->id()] = $tree->title();
+        }
+
+        return $choices;
+    }
+
+    private function legacyMigrationTree(): ?Tree
+    {
+        $trees = $this->treeService()->all();
+        $default_tree_name = Site::getPreference('DEFAULT_GEDCOM');
+
+        if ($default_tree_name !== '') {
+            $default_tree = $trees->get($default_tree_name);
+
+            if ($default_tree instanceof Tree) {
+                return $default_tree;
+            }
+        }
+
+        $first_tree = $trees->first();
+
+        return $first_tree instanceof Tree ? $first_tree : null;
+    }
+
+    private function treePreferenceKey(Tree $tree, string $key): string
+    {
+        return 'TREE_' . $tree->id() . '_' . $key;
+    }
+
+    private function treePreference(Tree $tree, string $key, string $default): string
+    {
+        return $this->getPreference($this->treePreferenceKey($tree, $key), $default);
+    }
+
+    private function setTreePreference(Tree $tree, string $key, string $value): void
+    {
+        $this->setPreference($this->treePreferenceKey($tree, $key), $value);
+    }
+
+    private function hasTreeConfiguration(Tree $tree): bool
+    {
+        return $this->treePreference($tree, self::TREE_CONFIGURED, '0') === '1';
+    }
+
+    private function markTreeConfigured(Tree $tree): void
+    {
+        $this->setTreePreference($tree, self::TREE_CONFIGURED, '1');
+    }
+
+    private function ensureTreeConfiguration(Tree $tree): void
+    {
+        if ($this->hasTreeConfiguration($tree)) {
+            return;
+        }
+
+        if ((int) $this->getPreference(self::LEGACY_MIGRATION_PREF, '0') > 0) {
+            return;
+        }
+
+        $migration_tree = $this->legacyMigrationTree();
+
+        if (!$migration_tree instanceof Tree || $migration_tree->id() !== $tree->id()) {
+            return;
+        }
+
+        foreach (self::DEFAULTS as $key => $default) {
+            $this->setTreePreference($tree, $key, $this->getPreference($key, $default));
+        }
+
+        $this->copyLegacyImagesToTree($tree);
+        $this->markTreeConfigured($tree);
+        $this->setPreference(self::LEGACY_MIGRATION_PREF, (string) $tree->id());
+    }
+
+    /** @return array<string,string> */
+    private function settings(Tree $tree): array
     {
         $settings = [];
 
@@ -378,7 +525,7 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
                 continue;
             }
 
-            $settings[$key] = $this->getPreference($key, $default);
+            $settings[$key] = $this->treePreference($tree, $key, $default);
         }
 
         foreach (['ENABLED', 'SHOW_BUTTON_1', 'SHOW_BUTTON_2', 'DOTS', 'RANDOM_START'] as $key) {
@@ -422,51 +569,52 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
     }
 
     /** @param array<string,mixed> $data */
-    private function saveSettings(array $data): void
+    private function saveSettings(Tree $tree, array $data): void
     {
         foreach (['ENABLED', 'SHOW_BUTTON_1', 'SHOW_BUTTON_2', 'DOTS', 'RANDOM_START'] as $key) {
             $field = strtolower($key);
-            $this->setPreference($key, isset($data[$field]) && (string) $data[$field] === '1' ? '1' : '0');
+            $this->setTreePreference($tree, $key, isset($data[$field]) && (string) $data[$field] === '1' ? '1' : '0');
         }
 
         foreach (['KICKER', 'TITLE', 'SUBTITLE', 'BUTTON_1_TEXT', 'BUTTON_1_URL', 'BUTTON_2_TEXT', 'BUTTON_2_URL'] as $key) {
             $field = strtolower($key);
             $value = isset($data[$field]) && is_string($data[$field]) ? trim($data[$field]) : self::DEFAULTS[$key];
-            $this->setPreference($key, $value);
+            $this->setTreePreference($tree, $key, $value);
         }
 
         $interval = isset($data['interval']) ? (int) $data['interval'] : (int) self::DEFAULTS['INTERVAL'];
-        $this->setPreference('INTERVAL', (string) max(3500, $interval));
+        $this->setTreePreference($tree, 'INTERVAL', (string) max(3500, $interval));
 
         $transition_speed = isset($data['transition_speed']) ? (int) $data['transition_speed'] : (int) self::DEFAULTS['TRANSITION_SPEED'];
-        $this->setPreference('TRANSITION_SPEED', (string) min(5000, max(300, $transition_speed)));
+        $this->setTreePreference($tree, 'TRANSITION_SPEED', (string) min(5000, max(300, $transition_speed)));
 
         $caption_offset = isset($data['caption_offset']) ? (int) $data['caption_offset'] : (int) self::DEFAULTS['CAPTION_OFFSET'];
-        $this->setPreference('CAPTION_OFFSET', (string) min(120, max(0, $caption_offset)));
+        $this->setTreePreference($tree, 'CAPTION_OFFSET', (string) min(120, max(0, $caption_offset)));
 
         $fit = isset($data['image_fit']) && is_string($data['image_fit']) ? $data['image_fit'] : self::DEFAULTS['IMAGE_FIT'];
-        $this->setPreference('IMAGE_FIT', array_key_exists($fit, $this->fitChoices()) ? $fit : self::DEFAULTS['IMAGE_FIT']);
+        $this->setTreePreference($tree, 'IMAGE_FIT', array_key_exists($fit, $this->fitChoices()) ? $fit : self::DEFAULTS['IMAGE_FIT']);
 
         $frame = isset($data['frame_style']) && is_string($data['frame_style']) ? $data['frame_style'] : self::DEFAULTS['FRAME_STYLE'];
-        $this->setPreference('FRAME_STYLE', array_key_exists($frame, $this->frameChoices()) ? $frame : self::DEFAULTS['FRAME_STYLE']);
+        $this->setTreePreference($tree, 'FRAME_STYLE', array_key_exists($frame, $this->frameChoices()) ? $frame : self::DEFAULTS['FRAME_STYLE']);
 
         $colour = isset($data['colour_mode']) && is_string($data['colour_mode']) ? $data['colour_mode'] : self::DEFAULTS['COLOUR_MODE'];
-        $this->setPreference('COLOUR_MODE', array_key_exists($colour, $this->colourChoices()) ? $colour : self::DEFAULTS['COLOUR_MODE']);
+        $this->setTreePreference($tree, 'COLOUR_MODE', array_key_exists($colour, $this->colourChoices()) ? $colour : self::DEFAULTS['COLOUR_MODE']);
 
         $palette = isset($data['palette']) && is_string($data['palette']) ? $data['palette'] : self::DEFAULTS['PALETTE'];
-        $this->setPreference('PALETTE', array_key_exists($palette, $this->paletteChoices()) ? $palette : self::DEFAULTS['PALETTE']);
+        $this->setTreePreference($tree, 'PALETTE', array_key_exists($palette, $this->paletteChoices()) ? $palette : self::DEFAULTS['PALETTE']);
 
         $transition = isset($data['transition']) && is_string($data['transition']) ? $data['transition'] : self::DEFAULTS['TRANSITION'];
-        $this->setPreference('TRANSITION', array_key_exists($transition, $this->transitionChoices()) ? $transition : self::DEFAULTS['TRANSITION']);
+        $this->setTreePreference($tree, 'TRANSITION', array_key_exists($transition, $this->transitionChoices()) ? $transition : self::DEFAULTS['TRANSITION']);
 
         $caption_style = isset($data['caption_style']) && is_string($data['caption_style']) ? $data['caption_style'] : self::DEFAULTS['CAPTION_STYLE'];
-        $this->setPreference('CAPTION_STYLE', array_key_exists($caption_style, $this->captionChoices()) ? $caption_style : self::DEFAULTS['CAPTION_STYLE']);
+        $this->setTreePreference($tree, 'CAPTION_STYLE', array_key_exists($caption_style, $this->captionChoices()) ? $caption_style : self::DEFAULTS['CAPTION_STYLE']);
+        $this->markTreeConfigured($tree);
     }
 
     /** @return array<int,array<string,string>> */
-    private function slides(): array
+    private function slides(Tree $tree): array
     {
-        $saved = json_decode($this->getPreference('SLIDES_JSON', self::DEFAULTS['SLIDES_JSON']), true);
+        $saved = json_decode($this->treePreference($tree, 'SLIDES_JSON', self::DEFAULTS['SLIDES_JSON']), true);
         $saved = is_array($saved) ? $saved : [];
         $known = [];
 
@@ -488,11 +636,11 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
                 'enabled'    => isset($slide['enabled']) && (string) $slide['enabled'] === '1' ? '1' : '0',
                 'sort'       => isset($slide['sort']) ? (string) (int) $slide['sort'] : '0',
                 'focal'      => isset($slide['focal']) && is_string($slide['focal']) && array_key_exists($slide['focal'], $this->focalChoices()) ? $slide['focal'] : 'center',
-                'image_url'  => $this->imageUrl($file),
+                'image_url'  => $this->imageUrl($tree, $file),
             ];
         }
 
-        foreach ($this->imageFiles() as $file) {
+        foreach ($this->imageFiles($tree) as $file) {
             if (!isset($known[$file])) {
                 $known[$file] = [
                     'file'       => $file,
@@ -501,12 +649,12 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
                     'enabled'    => '1',
                     'sort'       => (string) (count($known) + 1),
                     'focal'      => 'center',
-                    'image_url'  => $this->imageUrl($file),
+                    'image_url'  => $this->imageUrl($tree, $file),
                 ];
             }
         }
 
-        $slides = array_values(array_filter($known, fn (array $slide): bool => is_file($this->imageDirectory() . $slide['file'])));
+        $slides = array_values(array_filter($known, fn (array $slide): bool => is_file($this->imageDirectory($tree) . $slide['file'])));
 
         usort($slides, static function (array $a, array $b): int {
             $sort_a = (int) ($a['sort'] ?? 0);
@@ -519,12 +667,12 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
     }
 
     /** @param array<string,mixed> $data */
-    private function saveSlides(array $data): void
+    private function saveSlides(Tree $tree, array $data): void
     {
         $slides_input = isset($data['slides']) && is_array($data['slides']) ? $data['slides'] : [];
         $slides = [];
 
-        foreach ($this->slides() as $slide) {
+        foreach ($this->slides($tree) as $slide) {
             $file = $slide['file'];
             $input = isset($slides_input[$file]) && is_array($slides_input[$file]) ? $slides_input[$file] : [];
 
@@ -544,10 +692,11 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
             ];
         }
 
-        $this->setPreference('SLIDES_JSON', (string) json_encode($slides, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT));
+        $this->setTreePreference($tree, 'SLIDES_JSON', (string) json_encode($slides, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT));
+        $this->markTreeConfigured($tree);
     }
 
-    private function handleUploads(ServerRequestInterface $request): bool
+    private function handleUploads(Tree $tree, ServerRequestInterface $request): bool
     {
         $uploaded_files = $request->getUploadedFiles();
         $files = $uploaded_files['hero_images'] ?? [];
@@ -561,7 +710,7 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
         }
 
         $uploaded = false;
-        $slides = $this->slides();
+        $slides = $this->slides($tree);
         $next_sort = count($slides) + 1;
 
         foreach ($files as $file) {
@@ -580,9 +729,9 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
             $base = (string) preg_replace('/[^a-z0-9]+/', '-', $base);
             $base = trim($base, '-') ?: 'hero-image';
             $filename = $base . '-' . bin2hex(random_bytes(4)) . '.' . $extension;
-            $destination = $this->imageDirectory() . $filename;
+            $destination = $this->imageDirectory($tree) . $filename;
 
-            $this->ensureImageDirectory();
+            $this->ensureImageDirectory($tree);
             $file->moveTo($destination);
 
             $detected_mime = mime_content_type($destination) ?: '';
@@ -605,30 +754,49 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
         }
 
         if ($uploaded) {
-            $this->setPreference('SLIDES_JSON', (string) json_encode($slides, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT));
+            $this->setTreePreference($tree, 'SLIDES_JSON', (string) json_encode($slides, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT));
+            $this->markTreeConfigured($tree);
         }
 
         return $uploaded;
     }
 
-    private function deleteSlide(string $file): void
+    private function deleteSlide(Tree $tree, string $file): void
     {
         $file = basename($file);
-        $path = $this->imageDirectory() . $file;
+        $path = $this->imageDirectory($tree) . $file;
 
         if ($this->isAllowedImageFilename($file) && is_file($path)) {
             @unlink($path);
         }
 
-        $slides = array_values(array_filter($this->slides(), static fn (array $slide): bool => $slide['file'] !== $file));
-        $this->setPreference('SLIDES_JSON', (string) json_encode($slides, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT));
+        $slides = array_values(array_filter($this->slides($tree), static fn (array $slide): bool => $slide['file'] !== $file));
+        $this->setTreePreference($tree, 'SLIDES_JSON', (string) json_encode($slides, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT));
+        $this->markTreeConfigured($tree);
     }
 
     /** @return array<int,string> */
-    private function imageFiles(): array
+    private function imageFiles(Tree $tree): array
     {
-        $this->ensureImageDirectory();
-        $files = scandir($this->imageDirectory());
+        $this->ensureImageDirectory($tree);
+
+        return $this->imageFilesInDirectory($this->imageDirectory($tree));
+    }
+
+    /** @return array<int,string> */
+    private function legacyImageFiles(): array
+    {
+        return $this->imageFilesInDirectory($this->legacyImageDirectory());
+    }
+
+    /** @return array<int,string> */
+    private function imageFilesInDirectory(string $directory): array
+    {
+        if (!is_dir($directory)) {
+            return [];
+        }
+
+        $files = scandir($directory);
 
         if ($files === false) {
             return [];
@@ -637,7 +805,7 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
         $image_files = [];
 
         foreach ($files as $file) {
-            if ($this->isAllowedImageFilename($file) && is_file($this->imageDirectory() . $file)) {
+            if ($this->isAllowedImageFilename($file) && is_file($directory . $file)) {
                 $image_files[] = $file;
             }
         }
@@ -652,15 +820,24 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
         return $file === basename($file) && array_key_exists($extension, self::IMAGE_MIME_TYPES);
     }
 
-    private function imageDirectory(): string
+    private function legacyImageDirectory(): string
     {
         return Webtrees::DATA_DIR . 'potts-hero-slideshow/';
     }
 
-    private function ensureImageDirectory(): void
+    private function imageDirectory(Tree $tree): string
     {
-        $directory = $this->imageDirectory();
+        return $this->legacyImageDirectory() . 'tree-' . $tree->id() . '/';
+    }
 
+    private function ensureImageDirectory(Tree $tree): void
+    {
+        $this->ensureDirectory($this->legacyImageDirectory());
+        $this->ensureDirectory($this->imageDirectory($tree));
+    }
+
+    private function ensureDirectory(string $directory): void
+    {
         if (!is_dir($directory)) {
             mkdir($directory, 0775, true);
         }
@@ -672,12 +849,29 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
         }
     }
 
-    private function imageUrl(string $file): string
+    private function copyLegacyImagesToTree(Tree $tree): void
+    {
+        $this->ensureImageDirectory($tree);
+        $source_directory = $this->legacyImageDirectory();
+        $destination_directory = $this->imageDirectory($tree);
+
+        foreach ($this->legacyImageFiles() as $file) {
+            $source = $source_directory . $file;
+            $destination = $destination_directory . $file;
+
+            if (!is_file($destination)) {
+                @copy($source, $destination);
+            }
+        }
+    }
+
+    private function imageUrl(Tree $tree, string $file): string
     {
         return route('module', [
-            'module' => $this->name(),
-            'action' => 'Image',
-            'file'   => basename($file),
+            'module'  => $this->name(),
+            'action'  => 'Image',
+            'tree_id' => (string) $tree->id(),
+            'file'    => basename($file),
         ]);
     }
 

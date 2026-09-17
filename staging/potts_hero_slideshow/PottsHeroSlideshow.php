@@ -1,41 +1,236 @@
-from pathlib import Path
-import json
+<?php
+
+/**
+ * Potts Hero Slideshow for webtrees 2.2.
+ *
+ * A full-width homepage hero block with administrator-managed images.
+ */
+
+declare(strict_types=1);
+
+namespace PottsHeroSlideshow;
+
+use Fig\Http\Message\StatusCodeInterface;
+use Fisharebest\Localization\Translation;
+use Fisharebest\Webtrees\Auth;
+use Fisharebest\Webtrees\Http\Exceptions\HttpAccessDeniedException;
+use Fisharebest\Webtrees\Http\Exceptions\HttpNotFoundException;
+use Fisharebest\Webtrees\I18N;
+use Fisharebest\Webtrees\Module\AbstractModule;
+use Fisharebest\Webtrees\Module\ModuleBlockInterface;
+use Fisharebest\Webtrees\Module\ModuleBlockTrait;
+use Fisharebest\Webtrees\Module\ModuleConfigInterface;
+use Fisharebest\Webtrees\Module\ModuleConfigTrait;
+use Fisharebest\Webtrees\Module\ModuleCustomInterface;
+use Fisharebest\Webtrees\Module\ModuleCustomTrait;
+use Fisharebest\Webtrees\Registry;
+use Fisharebest\Webtrees\Services\TreeService;
+use Fisharebest\Webtrees\Site;
+use Fisharebest\Webtrees\Tree;
+use Fisharebest\Webtrees\Validator;
+use Fisharebest\Webtrees\View;
+use Fisharebest\Webtrees\Webtrees;
+use Illuminate\Support\Str;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\UploadedFileInterface;
+
+use function array_key_exists;
+use function array_values;
+use function basename;
+use function bin2hex;
+use function copy;
+use function dirname;
+use function file_exists;
+use function file_get_contents;
+use function filesize;
+use function implode;
+use function in_array;
+use function is_array;
+use function is_dir;
+use function is_file;
+use function is_readable;
+use function is_string;
+use function json_decode;
+use function json_encode;
+use function ksort;
+use function max;
+use function mime_content_type;
+use function mkdir;
+use function pathinfo;
+use function preg_replace;
+use function random_bytes;
+use function redirect;
+use function route;
+use function scandir;
+use function strtolower;
+use function trim;
+use function unlink;
+use function usort;
+use function view;
+
+use const JSON_HEX_AMP;
+use const JSON_HEX_APOS;
+use const JSON_HEX_QUOT;
+use const JSON_HEX_TAG;
+use const JSON_UNESCAPED_SLASHES;
+use const JSON_UNESCAPED_UNICODE;
+
+final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInterface, ModuleConfigInterface, ModuleBlockInterface
+{
+    use ModuleCustomTrait;
+    use ModuleConfigTrait;
+    use ModuleBlockTrait;
+
+    private const CUSTOM_VERSION = '1.1.0-beta.1';
+    private const LATEST_VERSION_URL = 'https://raw.githubusercontent.com/PottsNet/potts-hero-slideshow/main/latest-version.txt';
+    private const LEGACY_MIGRATION_PREF = 'MULTI_TREE_LEGACY_TREE_ID';
+    private const TREE_CONFIGURED = 'CONFIGURED';
+
+    /** @var array<string,string> */
+    private const DEFAULTS = [
+        'ENABLED'        => '1',
+        'KICKER'         => 'Family history since 1994',
+        'TITLE'          => 'Welcome to OurFamily',
+        'SUBTITLE'       => 'A living archive of our family’s people, places, records and stories — shared online for more than thirty years.',
+        'BUTTON_1_TEXT'  => 'Explore the tree',
+        'BUTTON_1_URL'   => '/tree/OurFamily',
+        'BUTTON_2_TEXT'  => 'Read family books',
+        'BUTTON_2_URL'   => '/tree/OurFamily/books',
+        'SHOW_BUTTON_1'  => '1',
+        'SHOW_BUTTON_2'  => '1',
+        'INTERVAL'       => '7000',
+        'TRANSITION_SPEED' => '1150',
+        'DOTS'           => '1',
+        'RANDOM_START'   => '0',
+        'IMAGE_FIT'      => 'contain',
+        'FRAME_STYLE'    => 'vintage',
+        'COLOUR_MODE'    => 'soft',
+        'PALETTE'        => 'auto',
+        'TRANSITION'     => 'zoom',
+        'CAPTION_STYLE'  => 'below',
+        'CAPTION_OFFSET' => '20',
+        'SLIDES_JSON'    => '[]',
+    ];
+
+    /** @var array<string,string> */
+    private const IMAGE_MIME_TYPES = [
+        'jpg'  => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'png'  => 'image/png',
+        'webp' => 'image/webp',
+        'gif'  => 'image/gif',
+    ];
+
+    public function title(): string
+    {
+        return I18N::translate('Potts Hero Slideshow');
+    }
+
+    public function description(): string
+    {
+        return I18N::translate('A standalone, theme-aware homepage hero banner with a family photo slideshow.');
+    }
+
+    public function isEnabledByDefault(): bool
+    {
+        return false;
+    }
+
+    public function customModuleVersion(): string
+    {
+        return self::CUSTOM_VERSION;
+    }
+
+    public function customModuleLatestVersion(): string
+    {
+        return self::CUSTOM_VERSION;
+    }
+
+    public function customModuleLatestVersionUrl(): string
+    {
+        return self::LATEST_VERSION_URL;
+    }
+
+    public function customModuleAuthorName(): string
+    {
+        return 'Jason Potts';
+    }
+
+    public function customModuleSupportUrl(): string
+    {
+        return 'https://github.com/PottsNet/potts-hero-slideshow/issues';
+    }
+
+    /** @return array<string,string> */
+    public function customTranslations(string $language): array
+    {
+        $file = $this->resourcesFolder() . 'lang/' . $language . '.mo';
+
+        return file_exists($file) ? (new Translation($file))->asArray() : [];
+    }
+
+    public function resourcesFolder(): string
+    {
+        return __DIR__ . '/resources/';
+    }
+
+    public function boot(): void
+    {
+        // Register views during module boot only. Do not call assetUrl() here.
+        // In webtrees 2.2 the request object is not available during module boot,
+        // and assetUrl() can trigger route generation too early.
+        View::registerNamespace('potts-hero-slideshow', $this->resourcesFolder() . 'views/');
+    }
 
 
-def replace_once(text: str, old: str, new: str, label: str) -> str:
-    count = text.count(old)
-    if count != 1:
-        raise SystemExit(f'{label}: expected exactly one match, found {count}')
-    return text.replace(old, new, 1)
+    private function pushAssets(): void
+    {
+        $css = $this->resourcesFolder() . 'css/hero.css';
+        $js  = $this->resourcesFolder() . 'js/hero.js';
 
+        if (is_file($css) && is_readable($css)) {
+            View::pushunique('styles');
+            echo '<style id="potts-hero-slideshow-css">' . file_get_contents($css) . '</style>';
+            View::endpushunique();
+        }
 
-php_path = Path('PottsHeroSlideshow.php')
-php = php_path.read_text(encoding='utf-8')
+        if (is_file($js) && is_readable($js)) {
+            View::pushunique('javascript');
+            echo '<script id="potts-hero-slideshow-js">' . file_get_contents($js) . '</script>';
+            View::endpushunique();
+        }
+    }
 
-php = replace_once(
-    php,
-    "use Fisharebest\\Webtrees\\Registry;\nuse Fisharebest\\Webtrees\\Tree;",
-    "use Fisharebest\\Webtrees\\Registry;\nuse Fisharebest\\Webtrees\\Services\\TreeService;\nuse Fisharebest\\Webtrees\\Site;\nuse Fisharebest\\Webtrees\\Tree;",
-    'TreeService/Site imports',
-)
-php = replace_once(
-    php,
-    "use function bin2hex;\nuse function dirname;",
-    "use function bin2hex;\nuse function copy;\nuse function dirname;",
-    'copy import',
-)
-php = replace_once(
-    php,
-    "    private const CUSTOM_VERSION = '1.0.1';\n    private const LATEST_VERSION_URL = 'https://raw.githubusercontent.com/PottsNet/potts-hero-slideshow/main/latest-version.txt';",
-    "    private const CUSTOM_VERSION = '1.1.0-beta.1';\n    private const LATEST_VERSION_URL = 'https://raw.githubusercontent.com/PottsNet/potts-hero-slideshow/main/latest-version.txt';\n    private const LEGACY_MIGRATION_PREF = 'MULTI_TREE_LEGACY_TREE_ID';\n    private const TREE_CONFIGURED = 'CONFIGURED';",
-    'version/constants',
-)
+    public function defaultBlockTitle(): string
+    {
+        return $this->title();
+    }
 
-start = php.index('    public function getBlock(Tree $tree, int $block_id, string $context, array $config = []): string')
-end_marker = '    /** @return array<string,string> */\n    private function fitChoices(): array'
-end = php.index(end_marker, start)
+    public function defaultBlockOrder(): int
+    {
+        return 5;
+    }
 
-new_region = r'''    public function getBlock(Tree $tree, int $block_id, string $context, array $config = []): string
+    public function isUserBlock(): bool
+    {
+        return false;
+    }
+
+    public function isTreeBlock(): bool
+    {
+        return true;
+    }
+
+    public function loadAjax(): bool
+    {
+        return false;
+    }
+
+    /**
+     * @param array<string,string> $config
+     */
+    public function getBlock(Tree $tree, int $block_id, string $context, array $config = []): string
     {
         $this->pushAssets();
         $this->ensureTreeConfiguration($tree);
@@ -680,67 +875,90 @@ new_region = r'''    public function getBlock(Tree $tree, int $block_id, string 
         ]);
     }
 
-'''
-php = php[:start] + new_region + php[end:]
-php_path.write_text(php, encoding='utf-8', newline='\n')
+    /** @return array<string,string> */
+    private function fitChoices(): array
+    {
+        return [
+            'contain' => I18N::translate('Show whole image'),
+            'cover'   => I18N::translate('Fill frame and crop edges'),
+        ];
+    }
 
-view_path = Path('resources/views/admin/settings.phtml')
-view = view_path.read_text(encoding='utf-8')
-view = replace_once(
-    view,
-    " * @var string $action_url\n * @var array<string,string> $settings",
-    " * @var string $action_url\n * @var array<string,string> $tree_choices\n * @var string $selected_tree_id\n * @var string $selected_tree_title\n * @var array<string,string> $settings",
-    'admin view variables',
-)
-view = replace_once(
-    view,
-    "    <div class=\"potts-hero-intro\">",
-    "    <form method=\"get\" action=\"<?= e($action_url) ?>\" class=\"card card-body mb-3\">\n        <div class=\"row g-2 align-items-end\">\n            <div class=\"col-md-8\">\n                <label class=\"form-label\" for=\"potts-hero-tree\"><?= e($t('Family tree')) ?></label>\n                <select class=\"form-select\" id=\"potts-hero-tree\" name=\"tree_id\" onchange=\"this.form.submit()\">\n                    <?php foreach ($tree_choices as $tree_id => $tree_title) : ?>\n                        <option value=\"<?= e($tree_id) ?>\" <?= $selected_tree_id === $tree_id ? 'selected' : '' ?>><?= e($tree_title) ?></option>\n                    <?php endforeach ?>\n                </select>\n            </div>\n            <noscript class=\"col-md-auto\">\n                <button class=\"btn btn-secondary\" type=\"submit\"><?= e($t('Go')) ?></button>\n            </noscript>\n        </div>\n    </form>\n\n    <div class=\"potts-hero-intro\">",
-    'tree selector',
-)
-view = replace_once(
-    view,
-    "            <p><?= e($t('Manage the full-width homepage hero banner, rotating images, captions, buttons and display timing.')) ?></p>",
-    "            <p><?= e($t('Manage the full-width homepage hero banner, rotating images, captions, buttons and display timing.')) ?><br><strong><?= e($selected_tree_title) ?></strong></p>",
-    'selected tree title',
-)
-view = replace_once(
-    view,
-    "        <?= csrf_field() ?>\n\n        <section",
-    "        <?= csrf_field() ?>\n        <input type=\"hidden\" name=\"tree_id\" value=\"<?= e($selected_tree_id) ?>\">\n\n        <section",
-    'hidden tree id',
-)
-view_path.write_text(view, encoding='utf-8', newline='\n')
+    /** @return array<string,string> */
+    private function frameChoices(): array
+    {
+        return [
+            'vintage' => I18N::translate('Vintage exact frame'),
+            'mount'   => I18N::translate('Offset photo mount'),
+            'simple'  => I18N::translate('Simple frame'),
+            'none'    => I18N::translate('No frame'),
+        ];
+    }
 
-metadata_path = Path('metadata.json')
-metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
-metadata['version'] = '1.1.0-beta.1'
-metadata_path.write_text(json.dumps(metadata, indent=2, ensure_ascii=False) + '\n', encoding='utf-8', newline='\n')
+    /** @return array<string,string> */
+    private function colourChoices(): array
+    {
+        return [
+            'soft'   => I18N::translate('Soft historic'),
+            'colour' => I18N::translate('Original colour'),
+            'sepia'  => I18N::translate('Sepia'),
+            'mono'   => I18N::translate('Black and white'),
+        ];
+    }
 
-changelog_path = Path('CHANGELOG.md')
-changelog = changelog_path.read_text(encoding='utf-8')
-changelog = replace_once(
-    changelog,
-    '# Changelog\n\n',
-    '# Changelog\n\n## 1.1.0-beta.1\n\n- Added independent hero settings, slide metadata and uploaded-image storage for each webtrees family tree.\n- Added a family-tree selector to the module administration page.\n- Existing global hero settings and images migrate once to the site default tree (or first tree when no default is set), while the legacy data is retained as a rollback source.\n- Image delivery now validates the requested tree against the current user\'s accessible trees and serves only that tree\'s image directory.\n- Public update feed remains on stable 1.0.1 while this multi-tree feature is tested.\n\n',
-    'changelog entry',
-)
-changelog_path.write_text(changelog, encoding='utf-8', newline='\n')
+    /** @return array<string,string> */
+    private function paletteChoices(): array
+    {
+        return [
+            'auto'          => I18N::translate('Automatic from theme'),
+            'heritage'      => I18N::translate('Heritage blue and gold'),
+            'neutral-light' => I18N::translate('Neutral light'),
+            'neutral-dark'  => I18N::translate('Neutral dark'),
+        ];
+    }
 
-readme_path = Path('README.md')
-readme = readme_path.read_text(encoding='utf-8')
-if '## Multi-tree configuration' not in readme:
-    readme += "\n\n## Multi-tree configuration\n\nFrom 1.1.0, each webtrees family tree has independent hero text, display settings, slide metadata and uploaded images. The administration page includes a family-tree selector. Existing pre-1.1 global configuration is copied once to the site default tree (or the first tree if no default is configured); the original global preferences and image files are retained for rollback. Tree images are stored under `data/potts-hero-slideshow/tree-<tree-id>/`.\n"
-readme_path.write_text(readme, encoding='utf-8', newline='\n')
+    /** @return array<string,string> */
+    private function transitionChoices(): array
+    {
+        return [
+            'fade'       => I18N::translate('Gentle fade'),
+            'zoom'       => I18N::translate('Fade with slow zoom'),
+            'slide-left' => I18N::translate('Slide from right'),
+            'slide-up'   => I18N::translate('Slide from below'),
+            'blur'       => I18N::translate('Soft focus fade'),
+            'random'     => I18N::translate('Random effect'),
+        ];
+    }
 
-pot_path = Path('resources/lang/messages.pot')
-pot = pot_path.read_text(encoding='utf-8')
-if 'msgid "Family tree"' not in pot:
-    pot += '\nmsgid "Family tree"\nmsgstr ""\n'
-pot_path.write_text(pot, encoding='utf-8', newline='\n')
+    /** @return array<string,string> */
+    private function captionChoices(): array
+    {
+        return [
+            'below'   => I18N::translate('Caption strip below frame'),
+            'overlay' => I18N::translate('Overlay title on image'),
+            'hidden'  => I18N::translate('Hide image titles'),
+        ];
+    }
 
-po_path = Path('resources/lang/nl.po')
-po = po_path.read_text(encoding='utf-8')
-if 'msgid "Family tree"' not in po:
-    po += '\nmsgid "Family tree"\nmsgstr "Stamboom"\n'
-po_path.write_text(po, encoding='utf-8', newline='\n')
+
+    /** @return array<string,string> */
+    private function startChoices(): array
+    {
+        return [
+            '0' => I18N::translate('First slide in saved order'),
+            '1' => I18N::translate('Randomise image order each visit'),
+        ];
+    }
+
+    /** @return array<string,string> */
+    private function focalChoices(): array
+    {
+        return [
+            'center' => I18N::translate('Centre'),
+            'top'    => I18N::translate('Top'),
+            'bottom' => I18N::translate('Bottom'),
+            'left'   => I18N::translate('Left'),
+            'right'  => I18N::translate('Right'),
+        ];
+    }
+}

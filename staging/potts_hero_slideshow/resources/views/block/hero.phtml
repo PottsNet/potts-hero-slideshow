@@ -1,0 +1,100 @@
+<?php
+
+declare(strict_types=1);
+
+use Fisharebest\Webtrees\I18N;
+
+
+/**
+ * @var array<string,string> $settings
+ * @var array<int,array<string,string>> $slides
+ */
+
+if (($settings['RANDOM_START'] ?? '0') === '1' && count($slides) > 1) {
+    shuffle($slides);
+}
+
+$fit_class        = $settings['IMAGE_FIT'] === 'cover' ? 'ourfamily-hero-fit-cover' : 'ourfamily-hero-fit-contain';
+$frame_class      = 'ourfamily-hero-frame-' . preg_replace('/[^a-z0-9\-]/', '', $settings['FRAME_STYLE']);
+$mode_class       = 'ourfamily-hero-mode-' . preg_replace('/[^a-z0-9\-]/', '', $settings['COLOUR_MODE']);
+$transition_class = 'ourfamily-hero-transition-' . preg_replace('/[^a-z0-9\-]/', '', $settings['TRANSITION'] ?? 'zoom');
+$palette_class    = 'ourfamily-hero-palette-' . preg_replace('/[^a-z0-9\-]/', '', $settings['PALETTE'] ?? 'auto');
+$caption_style    = $settings['CAPTION_STYLE'] ?? 'below';
+$caption_class    = 'ourfamily-hero-caption-' . preg_replace('/[^a-z0-9\-]/', '', $caption_style);
+$focal_map = [
+    'center' => 'center center',
+    'top'    => 'center top',
+    'bottom' => 'center bottom',
+    'left'   => 'left center',
+    'right'  => 'right center',
+];
+$show_caption_strip = $caption_style === 'below' && $slides !== [];
+$transition_speed = (int) ($settings['TRANSITION_SPEED'] ?? '1150');
+$transition_speed = min(5000, max(300, $transition_speed));
+$caption_offset = (int) ($settings['CAPTION_OFFSET'] ?? '20');
+$caption_offset = min(120, max(0, $caption_offset));
+$zoom_duration = max(2400, $transition_speed * 5);
+$style = '--ourfamily-hero-transition-duration: ' . $transition_speed . 'ms; --ourfamily-hero-zoom-duration: ' . $zoom_duration . 'ms; --ourfamily-hero-overlay-caption-offset: ' . $caption_offset . 'px;';
+?>
+<div class="ourfamily-hero <?= e($fit_class) ?> <?= e($frame_class) ?> <?= e($mode_class) ?> <?= e($transition_class) ?> <?= e($palette_class) ?> <?= e($caption_class) ?>" data-interval="<?= e($settings['INTERVAL']) ?>" data-transition-speed="<?= e((string) $transition_speed) ?>" data-dots="<?= e($settings['DOTS']) ?>" data-transition="<?= e($settings['TRANSITION'] ?? 'zoom') ?>" data-random-start="0" data-random-order="<?= e($settings['RANDOM_START'] ?? '0') ?>" data-caption-offset="<?= e((string) $caption_offset) ?>" style="<?= e($style) ?>">
+    <div class="ourfamily-hero-copy">
+        <?php if ($settings['KICKER'] !== '') : ?>
+            <span class="ourfamily-hero-kicker"><?= e($settings['KICKER']) ?></span>
+        <?php endif ?>
+
+        <?php if ($settings['TITLE'] !== '') : ?>
+            <h1 class="ourfamily-hero-title"><?= e($settings['TITLE']) ?></h1>
+        <?php endif ?>
+
+        <?php if ($settings['SUBTITLE'] !== '') : ?>
+            <p><?= e($settings['SUBTITLE']) ?></p>
+        <?php endif ?>
+
+        <?php if (($settings['SHOW_BUTTON_1'] === '1' && $settings['BUTTON_1_TEXT'] !== '' && $settings['BUTTON_1_URL'] !== '') || ($settings['SHOW_BUTTON_2'] === '1' && $settings['BUTTON_2_TEXT'] !== '' && $settings['BUTTON_2_URL'] !== '')) : ?>
+            <div class="ourfamily-hero-actions">
+                <?php if ($settings['SHOW_BUTTON_1'] === '1' && $settings['BUTTON_1_TEXT'] !== '' && $settings['BUTTON_1_URL'] !== '') : ?>
+                    <a href="<?= e($settings['BUTTON_1_URL']) ?>"><?= e($settings['BUTTON_1_TEXT']) ?></a>
+                <?php endif ?>
+
+                <?php if ($settings['SHOW_BUTTON_2'] === '1' && $settings['BUTTON_2_TEXT'] !== '' && $settings['BUTTON_2_URL'] !== '') : ?>
+                    <a class="secondary" href="<?= e($settings['BUTTON_2_URL']) ?>"><?= e($settings['BUTTON_2_TEXT']) ?></a>
+                <?php endif ?>
+            </div>
+        <?php endif ?>
+    </div>
+
+    <div class="ourfamily-hero-visual">
+        <div class="ourfamily-hero-frame">
+            <div class="ourfamily-hero-media">
+                <?php if ($slides === []) : ?>
+                    <figure class="ourfamily-hero-slide is-active">
+                        <div class="ourfamily-hero-placeholder">
+                            <strong><?= e(I18N::translate('Add hero images')) ?></strong>
+                            <span><?= e(I18N::translate('Upload family photographs in the module settings.')) ?></span>
+                        </div>
+                    </figure>
+                <?php else : ?>
+                    <?php foreach ($slides as $index => $slide) : ?>
+                        <?php $position = $focal_map[$slide['focal']] ?? 'center center'; ?>
+                        <figure class="ourfamily-hero-slide <?= $slide['caption'] !== '' ? 'has-caption' : '' ?> <?= $index === 0 ? 'is-active' : '' ?>">
+                            <img src="<?= e($slide['image_url']) ?>" alt="<?= e($slide['alt'] !== '' ? $slide['alt'] : ($slide['caption'] !== '' ? $slide['caption'] : I18N::translate('Family photograph'))) ?>" style="object-position: <?= e($position) ?>;">
+                            <?php if ($slide['caption'] !== '' && $caption_style === 'overlay') : ?>
+                                <figcaption style="bottom: <?= e((string) $caption_offset) ?>px !important;"><?= e($slide['caption']) ?></figcaption>
+                            <?php endif ?>
+                        </figure>
+                    <?php endforeach ?>
+                <?php endif ?>
+            </div>
+        </div>
+
+        <?php if ($show_caption_strip) : ?>
+            <div class="ourfamily-hero-caption-strip" aria-live="polite">
+                <?php foreach ($slides as $index => $slide) : ?>
+                    <div class="ourfamily-hero-caption-item <?= $slide['caption'] === '' ? 'is-empty' : '' ?> <?= $index === 0 ? 'is-active' : '' ?>" aria-hidden="<?= $index === 0 ? 'false' : 'true' ?>">
+                        <?= $slide['caption'] !== '' ? e($slide['caption']) : '&nbsp;' ?>
+                    </div>
+                <?php endforeach ?>
+            </div>
+        <?php endif ?>
+    </div>
+</div>
