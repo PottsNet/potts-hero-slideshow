@@ -79,7 +79,7 @@ final class PottsHeroSlideshow extends AbstractModule implements ModuleCustomInt
     use ModuleConfigTrait;
     use ModuleBlockTrait;
 
-    private const CUSTOM_VERSION = '1.0.0';
+    private const CUSTOM_VERSION = '1.0.1';
     private const LATEST_VERSION_URL = 'https://raw.githubusercontent.com/PottsNet/potts-hero-slideshow/main/latest-version.txt';
 
     /** @var array<string,string> */
