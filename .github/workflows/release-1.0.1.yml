@@ -1,0 +1,272 @@
+name: Release 1.0.1
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/release-1.0.1.yml
+      - .github/workflows/protect-update-feed.yml
+      - RELEASING.md
+      - CHANGELOG.md
+      - PottsHeroSlideshow.php
+      - metadata.json
+      - module.php
+      - resources/**
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/release-1.0.1.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  VERSION: 1.0.1
+  MODULE_DIR: potts_hero_slideshow
+  ASSET_NAME: potts-hero-slideshow-1.0.1-github-ready.zip
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out release commit
+        uses: actions/checkout@v4
+
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Verify Dutch translation files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f resources/lang/messages.pot
+          test -f resources/lang/nl.po
+          test -f resources/lang/nl.mo
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import struct
+
+          pot = Path('resources/lang/messages.pot').read_text(encoding='utf-8')
+          po = Path('resources/lang/nl.po').read_text(encoding='utf-8')
+          mo = Path('resources/lang/nl.mo').read_bytes()
+
+          pot_count = sum(1 for line in pot.splitlines() if line.startswith('msgid '))
+          po_count = sum(1 for line in po.splitlines() if line.startswith('msgid '))
+          if pot_count != po_count:
+              raise SystemExit(f'Catalogue entry mismatch: POT={pot_count}, Dutch PO={po_count}')
+
+          if 'Language: nl\\n' not in po or 'Plural-Forms: nplurals=2; plural=(n != 1);\\n' not in po:
+              raise SystemExit('Dutch PO header is incomplete or has an unexpected plural rule')
+
+          if len(mo) < 28:
+              raise SystemExit('Dutch MO file is too small')
+
+          magic_le = struct.unpack('<I', mo[:4])[0]
+          magic_be = struct.unpack('>I', mo[:4])[0]
+          if magic_le == 0x950412de:
+              endian = '<'
+          elif magic_be == 0x950412de:
+              endian = '>'
+          else:
+              raise SystemExit('Dutch MO file does not have a valid GNU gettext magic number')
+
+          revision, count, original_offset, translation_offset, _, _ = struct.unpack(endian + '6I', mo[4:28])
+          if revision != 0:
+              raise SystemExit(f'Unsupported MO revision: {revision}')
+          if count != pot_count:
+              raise SystemExit(f'Compiled MO entry mismatch: MO={count}, POT={pot_count}')
+
+          def table_entry(offset, index):
+              length, start = struct.unpack(endian + '2I', mo[offset + index * 8: offset + index * 8 + 8])
+              return mo[start:start + length]
+
+          originals = [table_entry(original_offset, i) for i in range(count)]
+          translations = [table_entry(translation_offset, i) for i in range(count)]
+          mapping = dict(zip(originals, translations))
+
+          expected = mapping.get(b'Potts Hero Slideshow', b'').decode('utf-8')
+          if expected != 'Potts Hero-diavoorstelling':
+              raise SystemExit('Compiled Dutch MO does not match the submitted Potts Hero Slideshow translation')
+          PY
+
+      - name: Prepare 1.0.1 version in working tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+
+          version = '1.0.1'
+          php = Path('PottsHeroSlideshow.php')
+          text = php.read_text(encoding='utf-8')
+          old = "private const CUSTOM_VERSION = '1.0.0';"
+          new = f"private const CUSTOM_VERSION = '{version}';"
+          if new not in text:
+              if text.count(old) != 1:
+                  raise SystemExit('Could not locate the expected 1.0.0 CUSTOM_VERSION exactly once')
+              php.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          metadata_path = Path('metadata.json')
+          metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
+          current = metadata.get('version')
+          if current not in ('1.0.0', version):
+              raise SystemExit(f'Unexpected metadata version: {current!r}')
+          metadata['version'] = version
+          metadata_path.write_text(json.dumps(metadata, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+          PY
+
+          grep -Fq "private const CUSTOM_VERSION = '${VERSION}';" PottsHeroSlideshow.php
+          grep -Fq '"version": "1.0.1"' metadata.json
+
+      - name: PHP 8.4 syntax check
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file"
+          done < <(find . -type f -name '*.php' -not -path './.git/*' -print0)
+
+      - name: Build installable module ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf staging dist
+          mkdir -p "staging/${MODULE_DIR}" dist
+
+          cp module.php PottsHeroSlideshow.php metadata.json README.md CHANGELOG.md LICENSE "staging/${MODULE_DIR}/"
+          cp -R resources "staging/${MODULE_DIR}/"
+
+          (
+            cd staging
+            zip -qr "../dist/${ASSET_NAME}" "${MODULE_DIR}"
+          )
+
+          unzip -t "dist/${ASSET_NAME}"
+          if unzip -Z1 "dist/${ASSET_NAME}" | grep -Ev "^${MODULE_DIR}/"; then
+            echo 'Release ZIP contains files outside the required module root.'
+            exit 1
+          fi
+
+          unzip -Z1 "dist/${ASSET_NAME}" | grep -Fxq "${MODULE_DIR}/module.php"
+          unzip -Z1 "dist/${ASSET_NAME}" | grep -Fxq "${MODULE_DIR}/PottsHeroSlideshow.php"
+          unzip -Z1 "dist/${ASSET_NAME}" | grep -Fxq "${MODULE_DIR}/resources/lang/nl.po"
+          unzip -Z1 "dist/${ASSET_NAME}" | grep -Fxq "${MODULE_DIR}/resources/lang/nl.mo"
+          unzip -p "dist/${ASSET_NAME}" "${MODULE_DIR}/PottsHeroSlideshow.php" | grep -Fq "private const CUSTOM_VERSION = '${VERSION}';"
+
+          sha256sum "dist/${ASSET_NAME}" | tee "dist/${ASSET_NAME}.sha256"
+
+      - name: Prepare release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > dist/release-notes.md <<'EOF'
+          ## Potts Hero Slideshow 1.0.1
+
+          This patch release adds Dutch localisation contributed by **TheDutchJewel**.
+
+          ### Changes
+          - Adds a complete Dutch (`nl`) translation for the module interface.
+          - Includes both `nl.po` and the compiled `nl.mo` loaded by webtrees at runtime.
+          - Does not change slideshow behaviour, stored settings or uploaded images.
+
+          ### Validation
+          - Dutch PO and MO catalogues are checked against the current `messages.pot` catalogue.
+          - The compiled MO file is checked for a valid GNU gettext header and expected Dutch module-title translation.
+          - Every PHP file is syntax-checked with PHP 8.4.
+          - The install archive is verified to contain `potts_hero_slideshow` as its single module root.
+
+          ### Upgrade
+          Extract the attached ZIP and replace the existing `modules_v4/potts_hero_slideshow` module directory. Uploaded hero images remain in the webtrees data folder and are not included in or overwritten by the module package.
+          EOF
+
+      - name: Upload validated package for PR review
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: potts-hero-slideshow-1.0.1-validation
+          path: |
+            dist/${{ env.ASSET_NAME }}
+            dist/${{ env.ASSET_NAME }}.sha256
+          if-no-files-found: error
+
+      - name: Commit release version to main
+        if: github.event_name != 'pull_request'
+        id: version_commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          if ! git diff --quiet -- PottsHeroSlideshow.php metadata.json; then
+            git add PottsHeroSlideshow.php metadata.json
+            git commit -m "Release version ${VERSION}"
+            git push origin HEAD:main
+          fi
+
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Check whether release already exists
+        if: github.event_name != 'pull_request'
+        id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo 'exists=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'exists=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish GitHub release
+        if: github.event_name != 'pull_request' && steps.existing.outputs.exists != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release create "v${VERSION}" \
+            "dist/${ASSET_NAME}" \
+            "dist/${ASSET_NAME}.sha256" \
+            --target "${{ steps.version_commit.outputs.sha }}" \
+            --title "Potts Hero Slideshow v${VERSION}" \
+            --notes-file dist/release-notes.md
+
+      - name: Verify published release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release view "v${VERSION}" --json tagName,isDraft,isPrerelease,publishedAt,assets,url
+          gh release view "v${VERSION}" --json assets --jq '.assets[].name' | grep -Fxq "${ASSET_NAME}"
+          gh release view "v${VERSION}" --json assets --jq '.assets[].name' | grep -Fxq "${ASSET_NAME}.sha256"
+
+      - name: Advance update feed after publication
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release view "v${VERSION}" >/dev/null
+          printf '%s\n' "$VERSION" > latest-version.txt
+
+          if ! git diff --quiet -- latest-version.txt; then
+            git add latest-version.txt
+            git commit -m "Advertise published ${VERSION} release"
+            git push origin HEAD:main
+          fi
+
+          test "$(tr -d '\r\n' < latest-version.txt)" = "$VERSION"
