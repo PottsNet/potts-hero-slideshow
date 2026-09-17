@@ -214,3 +214,6 @@ msgstr ""
 
 msgid "Save settings"
 msgstr ""
+
+msgid "Family tree"
+msgstr ""

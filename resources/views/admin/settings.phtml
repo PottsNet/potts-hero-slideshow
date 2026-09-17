@@ -7,6 +7,9 @@ use Fisharebest\Webtrees\I18N;
 /**
  * @var string $title
  * @var string $action_url
+ * @var array<string,string> $tree_choices
+ * @var string $selected_tree_id
+ * @var string $selected_tree_title
  * @var array<string,string> $settings
  * @var array<int,array<string,string>> $slides
  * @var array<string,string> $fit_choices
@@ -91,10 +94,26 @@ $enabled_slides = array_values(array_filter($slides, static fn (array $slide): b
         <div class="alert alert-warning potts-hero-notice" role="alert"><?= e($error) ?></div>
     <?php endif ?>
 
+    <form method="get" action="<?= e($action_url) ?>" class="card card-body mb-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-8">
+                <label class="form-label" for="potts-hero-tree"><?= e($t('Family tree')) ?></label>
+                <select class="form-select" id="potts-hero-tree" name="tree_id" onchange="this.form.submit()">
+                    <?php foreach ($tree_choices as $tree_id => $tree_title) : ?>
+                        <option value="<?= e($tree_id) ?>" <?= $selected_tree_id === $tree_id ? 'selected' : '' ?>><?= e($tree_title) ?></option>
+                    <?php endforeach ?>
+                </select>
+            </div>
+            <noscript class="col-md-auto">
+                <button class="btn btn-secondary" type="submit"><?= e($t('Go')) ?></button>
+            </noscript>
+        </div>
+    </form>
+
     <div class="potts-hero-intro">
         <div>
             <h2><?= e($t('Potts Hero Slideshow')) ?></h2>
-            <p><?= e($t('Manage the full-width homepage hero banner, rotating images, captions, buttons and display timing.')) ?></p>
+            <p><?= e($t('Manage the full-width homepage hero banner, rotating images, captions, buttons and display timing.')) ?><br><strong><?= e($selected_tree_title) ?></strong></p>
             <div class="potts-hero-mini-stats">
                 <span><?= e(I18N::plural('%s slide', '%s slides', count($slides), I18N::number(count($slides)))) ?></span>
                 <span><?= e(I18N::plural('%s enabled', '%s enabled', count($enabled_slides), I18N::number(count($enabled_slides)))) ?></span>
@@ -105,6 +124,7 @@ $enabled_slides = array_values(array_filter($slides, static fn (array $slide): b
 
     <form method="post" action="<?= e($action_url) ?>" enctype="multipart/form-data">
         <?= csrf_field() ?>
+        <input type="hidden" name="tree_id" value="<?= e($selected_tree_id) ?>">
 
         <section class="potts-hero-preview-card" aria-label="<?= e($t('Hero preview')) ?>">
             <header>

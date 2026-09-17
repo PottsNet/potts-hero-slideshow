@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.0-beta.1
+
+- Added independent hero settings, slide metadata and uploaded-image storage for each webtrees family tree.
+- Added a family-tree selector to the module administration page.
+- Existing global hero settings and images migrate once to the site default tree (or first tree when no default is set), while the legacy data is retained as a rollback source.
+- Image delivery now validates the requested tree against the current user's accessible trees and serves only that tree's image directory.
+- Public update feed remains on stable 1.0.1 while this multi-tree feature is tested.
+
 ## 1.0.1
 
 - Added a complete Dutch (`nl`) translation contributed by TheDutchJewel.

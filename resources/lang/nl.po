@@ -222,3 +222,6 @@ msgstr "Standaardinstellingen herstellen"
 
 msgid "Save settings"
 msgstr "Instellingen opslaan"
+
+msgid "Family tree"
+msgstr "Stamboom"

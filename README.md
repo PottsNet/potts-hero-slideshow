@@ -65,3 +65,8 @@ As usual, keep a backup of your webtrees `data` folder and database before updat
 ## Version
 
 1.0.0
+
+
+## Multi-tree configuration
+
+From 1.1.0, each webtrees family tree has independent hero text, display settings, slide metadata and uploaded images. The administration page includes a family-tree selector. Existing pre-1.1 global configuration is copied once to the site default tree (or the first tree if no default is configured); the original global preferences and image files are retained for rollback. Tree images are stored under `data/potts-hero-slideshow/tree-<tree-id>/`.

@@ -1,7 +1,7 @@
 {
   "name": "Potts Hero Slideshow",
   "slug": "potts_hero_slideshow",
-  "version": "1.0.1",
+  "version": "1.1.0-beta.1",
   "description": "A standalone, theme-aware homepage hero slideshow block for webtrees 2.2.",
   "author": "Jason Potts",
   "support": "https://github.com/PottsNet/potts-hero-slideshow/issues",
