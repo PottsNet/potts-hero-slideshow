@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.1
+
+- Added a complete Dutch (`nl`) translation contributed by TheDutchJewel.
+- Added both the editable `nl.po` catalogue and compiled `nl.mo` file used by webtrees at runtime.
+- No slideshow behaviour or settings were changed in this patch release.
+
 ## 1.0.0
 
 - First stable public release.
