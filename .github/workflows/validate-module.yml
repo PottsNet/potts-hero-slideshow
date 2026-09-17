@@ -1,0 +1,75 @@
+name: Validate module
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  MODULE_DIR: potts_hero_slideshow
+  ASSET_NAME: potts-hero-slideshow-validation.zip
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: PHP 8.4 syntax check
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            php -l "$file"
+          done < <(find . -type f \( -name '*.php' -o -name '*.phtml' \) -not -path './.git/*' -print0)
+
+      - name: Verify version and feed safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "private const CUSTOM_VERSION = '1.1.0-beta.1';" PottsHeroSlideshow.php
+          grep -Fq '"version": "1.1.0-beta.1"' metadata.json
+          test "$(cat latest-version.txt)" = '1.0.1'
+
+      - name: Verify per-tree implementation markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'private function treePreferenceKey(Tree $tree, string $key): string' PottsHeroSlideshow.php
+          grep -Fq 'private function legacyMigrationTree(): ?Tree' PottsHeroSlideshow.php
+          grep -Fq 'private function imageDirectory(Tree $tree): string' PottsHeroSlideshow.php
+          grep -Fq "'tree_id' => (string) \$tree->id()" PottsHeroSlideshow.php
+          grep -Fq 'name="tree_id"' resources/views/admin/settings.phtml
+
+      - name: Build installable ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf staging dist
+          mkdir -p "staging/${MODULE_DIR}" dist
+          cp module.php PottsHeroSlideshow.php metadata.json README.md CHANGELOG.md LICENSE latest-version.txt "staging/${MODULE_DIR}/"
+          cp -R resources "staging/${MODULE_DIR}/"
+          (cd staging && zip -qr "../dist/${ASSET_NAME}" "${MODULE_DIR}")
+          unzip -t "dist/${ASSET_NAME}"
+          if unzip -Z1 "dist/${ASSET_NAME}" | grep -Ev "^${MODULE_DIR}/"; then
+            echo 'ZIP contains files outside the module root.'
+            exit 1
+          fi
+          unzip -Z1 "dist/${ASSET_NAME}" | grep -Fxq "${MODULE_DIR}/module.php"
+          unzip -Z1 "dist/${ASSET_NAME}" | grep -Fxq "${MODULE_DIR}/PottsHeroSlideshow.php"
+
+      - name: Upload validation package
+        uses: actions/upload-artifact@v4
+        with:
+          name: potts-hero-slideshow-1.1.0-beta.1
+          path: dist/${{ env.ASSET_NAME }}
+          if-no-files-found: error
