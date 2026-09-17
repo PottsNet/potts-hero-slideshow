@@ -43,7 +43,7 @@ jobs:
             php -l "$file"
           done < <(find . -type f \( -name '*.php' -o -name '*.phtml' \) -not -path './.git/*' -print0)
           grep -Fq "use Fisharebest\\Webtrees\\DB;" PottsHeroSlideshow.php
-          grep -Fq "->where('module_name', '=', \$this->name())" PottsHeroSlideshow.php
+          grep -Fq -- "->where('module_name', '=', \$this->name())" PottsHeroSlideshow.php
           grep -Fq "in_array(\$tree->id(), \$hero_tree_ids, true)" PottsHeroSlideshow.php
           test "$(cat latest-version.txt)" = '1.0.1'
 
